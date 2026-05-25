@@ -1,0 +1,101 @@
+{% extends 'admin/_layout.html' %}
+{% block title %}{% if gift %}Edit{% else %}New{% endif %} Gift — Admin{% endblock %}
+
+{% block admin_content %}
+<a href="{{ url_for('admin.gifts') }}" class="text-sm text-gray-400 hover:text-white">← Ба рӯйхат</a>
+<h1 class="text-2xl font-bold my-4">{% if gift %}Тағйир: {{ gift.title }}{% else %}Иловаи Gift нав{% endif %}</h1>
+
+<form method="POST" enctype="multipart/form-data" class="grid md:grid-cols-2 gap-6">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+  <div class="space-y-4">
+    <div>
+      <label class="block text-xs uppercase text-gray-500 mb-1.5">Title *</label>
+      <input type="text" name="title" required value="{{ gift.title if gift else '' }}"
+             class="w-full px-4 py-2.5 rounded-xl bg-panel border border-white/10 focus:border-accent focus:outline-none" />
+    </div>
+
+    <div>
+      <label class="block text-xs uppercase text-gray-500 mb-1.5">Description</label>
+      <textarea name="description" rows="4"
+                class="w-full px-4 py-2.5 rounded-xl bg-panel border border-white/10 focus:border-accent focus:outline-none">{{ gift.description if gift else '' }}</textarea>
+    </div>
+
+    <div class="grid grid-cols-2 gap-3">
+      <div>
+        <label class="block text-xs uppercase text-gray-500 mb-1.5">Collection</label>
+        <input type="text" name="collection" value="{{ gift.collection if gift else '' }}"
+               class="w-full px-4 py-2.5 rounded-xl bg-panel border border-white/10" />
+      </div>
+      <div>
+        <label class="block text-xs uppercase text-gray-500 mb-1.5">Rarity</label>
+        <input type="text" name="rarity" value="{{ gift.rarity if gift else '' }}"
+               class="w-full px-4 py-2.5 rounded-xl bg-panel border border-white/10" />
+      </div>
+    </div>
+
+    <div>
+      <label class="block text-xs uppercase text-gray-500 mb-1.5">Fragment URL</label>
+      <input type="url" name="fragment_url" value="{{ gift.fragment_url if gift else '' }}"
+             placeholder="https://fragment.com/gift/..."
+             class="w-full px-4 py-2.5 rounded-xl bg-panel border border-white/10" />
+    </div>
+  </div>
+
+  <div class="space-y-4">
+    <div>
+      <label class="block text-xs uppercase text-gray-500 mb-1.5">Image upload</label>
+      <input type="file" name="image" accept="image/*"
+             class="w-full text-sm text-gray-400 file:mr-3 file:px-4 file:py-2 file:rounded-lg file:border-0 file:bg-accent/10 file:text-accent" />
+      {% if gift and gift.image_url %}
+        <img src="{{ gift.image_url }}" class="mt-2 w-32 h-32 rounded-xl object-cover" />
+      {% endif %}
+    </div>
+    <div>
+      <label class="block text-xs uppercase text-gray-500 mb-1.5">Or Image URL</label>
+      <input type="url" name="image_url" value="{{ gift.image_url if gift else '' }}"
+             class="w-full px-4 py-2.5 rounded-xl bg-panel border border-white/10" />
+    </div>
+
+    <div class="grid grid-cols-2 gap-3">
+      <div>
+        <label class="block text-xs uppercase text-gray-500 mb-1.5">TON Price *</label>
+        <input type="number" step="0.01" min="0" name="ton_price" required value="{{ gift.ton_price if gift else '' }}"
+               class="w-full px-4 py-2.5 rounded-xl bg-panel border border-white/10" />
+      </div>
+      <div>
+        <label class="block text-xs uppercase text-gray-500 mb-1.5">Manual TJS Price</label>
+        <input type="number" step="0.01" min="0" name="manual_tjs_price"
+               value="{{ gift.manual_tjs_price if gift and gift.manual_tjs_price else '' }}"
+               placeholder="Auto"
+               class="w-full px-4 py-2.5 rounded-xl bg-panel border border-white/10" />
+      </div>
+    </div>
+
+    <div>
+      <label class="block text-xs uppercase text-gray-500 mb-1.5">Quantity</label>
+      <input type="number" min="0" name="quantity" value="{{ gift.quantity if gift else 1 }}"
+             class="w-full px-4 py-2.5 rounded-xl bg-panel border border-white/10" />
+    </div>
+
+    <div class="space-y-2">
+      <label class="flex items-center gap-2 cursor-pointer">
+        <input type="checkbox" name="use_manual_price" {% if gift and gift.use_manual_price %}checked{% endif %} class="w-4 h-4 accent-accent" />
+        <span class="text-sm">Истифодаи Manual TJS Price</span>
+      </label>
+      <label class="flex items-center gap-2 cursor-pointer">
+        <input type="checkbox" name="is_available" {% if not gift or gift.is_available %}checked{% endif %} class="w-4 h-4 accent-accent" />
+        <span class="text-sm">Дастрас</span>
+      </label>
+      <label class="flex items-center gap-2 cursor-pointer">
+        <input type="checkbox" name="is_featured" {% if gift and gift.is_featured %}checked{% endif %} class="w-4 h-4 accent-accent" />
+        <span class="text-sm">Featured (тавсияшуда)</span>
+      </label>
+    </div>
+
+    <button type="submit" class="w-full py-3 rounded-xl bg-accent hover:bg-accent/90 text-white font-semibold shadow-lg shadow-accent/30 transition">
+      {% if gift %}Захира{% else %}Илова{% endif %}
+    </button>
+  </div>
+</form>
+{% endblock %}

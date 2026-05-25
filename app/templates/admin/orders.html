@@ -1,0 +1,61 @@
+{% extends 'admin/_layout.html' %}
+{% block title %}Orders — Admin{% endblock %}
+
+{% block admin_content %}
+<h1 class="text-2xl font-bold mb-6">Заказҳо</h1>
+
+<div class="flex gap-2 mb-4 text-sm">
+  {% for s in [('', 'Ҳама'), ('pending', 'Pending'), ('paid', 'Paid'), ('completed', 'Completed'), ('cancelled', 'Cancelled')] %}
+    <a href="?status={{ s[0] }}" class="px-3 py-1.5 rounded-lg border transition
+      {% if status == s[0] %}bg-accent/10 border-accent/30 text-accent{% else %}bg-panel border-white/10 hover:border-white/20{% endif %}">
+      {{ s[1] }}
+    </a>
+  {% endfor %}
+</div>
+
+<div class="rounded-2xl bg-panel border border-white/10 overflow-hidden">
+  {% if orders %}
+  <table class="w-full text-sm">
+    <thead class="bg-white/5 text-xs uppercase text-gray-400">
+      <tr>
+        <th class="px-4 py-3 text-left">#</th>
+        <th class="px-4 py-3 text-left">User</th>
+        <th class="px-4 py-3 text-left">Gift</th>
+        <th class="px-4 py-3 text-right">Price</th>
+        <th class="px-4 py-3 text-left">Contact</th>
+        <th class="px-4 py-3 text-left">Status</th>
+        <th class="px-4 py-3 text-left">Date</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-white/5">
+      {% for o in orders %}
+      <tr class="hover:bg-white/5">
+        <td class="px-4 py-3 font-mono">#{{ o.id }}</td>
+        <td class="px-4 py-3">{{ o.user.display_name }}</td>
+        <td class="px-4 py-3">{{ o.gift.title }}</td>
+        <td class="px-4 py-3 text-right">
+          <div class="text-accent font-bold">{{ o.ton_price }} TON</div>
+          <div class="text-xs text-gray-400">{{ "%.2f"|format(o.tjs_price) }} TJS</div>
+        </td>
+        <td class="px-4 py-3 text-xs">{{ o.contact_info or '—' }}</td>
+        <td class="px-4 py-3">
+          <form method="POST" action="{{ url_for('admin.order_status', order_id=o.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <select name="status" onchange="this.form.submit()" class="bg-bg border border-white/10 rounded px-2 py-1 text-xs">
+              <option value="pending" {% if o.status == 'pending' %}selected{% endif %}>Pending</option>
+              <option value="paid" {% if o.status == 'paid' %}selected{% endif %}>Paid</option>
+              <option value="completed" {% if o.status == 'completed' %}selected{% endif %}>Completed</option>
+              <option value="cancelled" {% if o.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+            </select>
+          </form>
+        </td>
+        <td class="px-4 py-3 text-xs text-gray-400">{{ o.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="p-12 text-center text-gray-500">Заказ нест.</div>
+  {% endif %}
+</div>
+{% endblock %}
