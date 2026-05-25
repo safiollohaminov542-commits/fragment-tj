@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="tg" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}Fragment TJ{% endblock %}</title>
+
+  <!-- TailwindCSS via CDN (production: build бо PostCSS) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            bg: "#0b0f17",
+            panel: "#111827",
+            ring: "#1f2937",
+            accent: "#0098EA", // TON blue
+            accent2: "#22d3ee",
+          },
+          fontFamily: {
+            sans: ["Inter", "system-ui", "sans-serif"],
+          },
+          animation: {
+            "fade-in": "fadeIn 0.4s ease-out",
+            "slide-up": "slideUp 0.5s ease-out",
+            float: "float 3s ease-in-out infinite",
+          },
+          keyframes: {
+            fadeIn: {
+              "0%": { opacity: "0" },
+              "100%": { opacity: "1" },
+            },
+            slideUp: {
+              "0%": { transform: "translateY(20px)", opacity: "0" },
+              "100%": { transform: "translateY(0)", opacity: "1" },
+            },
+            float: {
+              "0%, 100%": { transform: "translateY(0)" },
+              "50%": { transform: "translateY(-10px)" },
+            },
+          },
+        },
+      },
+    };
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  />
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+  {% block head %}{% endblock %}
+</head>
+<body class="bg-bg text-gray-100 font-sans min-h-screen flex flex-col antialiased">
+  <!-- Decorative background blobs -->
+  <div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+    <div class="absolute top-0 -left-40 w-96 h-96 bg-accent/20 rounded-full blur-3xl"></div>
+    <div class="absolute bottom-0 -right-40 w-96 h-96 bg-accent2/10 rounded-full blur-3xl"></div>
+  </div>
+
+  {% include 'partials/navbar.html' %}
+
+  <main class="flex-1 container mx-auto px-4 py-8 animate-fade-in">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="mb-6 space-y-2">
+          {% for category, msg in messages %}
+            <div class="p-4 rounded-xl border backdrop-blur
+                        {% if category == 'error' %}bg-red-500/10 border-red-500/30 text-red-300
+                        {% elif category == 'success' %}bg-emerald-500/10 border-emerald-500/30 text-emerald-300
+                        {% else %}bg-blue-500/10 border-blue-500/30 text-blue-300{% endif %}">
+              {{ msg }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+  {% include 'partials/footer.html' %}
+
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

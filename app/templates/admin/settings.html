@@ -1,0 +1,68 @@
+{% extends 'admin/_layout.html' %}
+{% block title %}Settings — Admin{% endblock %}
+
+{% block admin_content %}
+<h1 class="text-2xl font-bold mb-6">Танзимот</h1>
+
+<div class="rounded-2xl bg-panel border border-white/10 p-5 mb-6">
+  <div class="flex items-center gap-3">
+    <svg class="w-8 h-8 text-accent" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0L0 6.6L12 24L24 6.6L12 0Z"/></svg>
+    <div>
+      <div class="text-xs text-gray-500">Курси феълии истифодашаванда</div>
+      <div class="font-bold">1 TON = <span class="text-accent">{{ "%.2f"|format(live_rate) }}</span> TJS</div>
+    </div>
+  </div>
+</div>
+
+<form method="POST" class="space-y-4">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+  <div class="rounded-2xl bg-panel border border-white/10 p-5 space-y-4">
+    <h2 class="font-semibold">Курси TON</h2>
+
+    <label class="flex items-center gap-2 cursor-pointer">
+      <input type="checkbox" name="use_manual_rate" {% if settings.get('use_manual_rate') and settings['use_manual_rate'].value == 'true' %}checked{% endif %} class="w-4 h-4 accent-accent" />
+      <span class="text-sm">Истифодаи Manual rate (вагарна аз CoinGecko API гирифта мешавад)</span>
+    </label>
+
+    <div>
+      <label class="block text-xs uppercase text-gray-500 mb-1.5">Manual Rate (1 TON = ? TJS)</label>
+      <input type="number" step="0.01" name="ton_tjs_rate"
+             value="{{ settings.get('ton_tjs_rate').value if settings.get('ton_tjs_rate') else '52' }}"
+             class="w-full px-4 py-2.5 rounded-xl bg-bg border border-white/10" />
+    </div>
+  </div>
+
+  <div class="rounded-2xl bg-panel border border-white/10 p-5 space-y-4">
+    <h2 class="font-semibold">Сайт</h2>
+
+    <div>
+      <label class="block text-xs uppercase text-gray-500 mb-1.5">Site Name</label>
+      <input type="text" name="site_name"
+             value="{{ settings.get('site_name').value if settings.get('site_name') else '' }}"
+             class="w-full px-4 py-2.5 rounded-xl bg-bg border border-white/10" />
+    </div>
+    <div>
+      <label class="block text-xs uppercase text-gray-500 mb-1.5">Tagline</label>
+      <input type="text" name="site_tagline"
+             value="{{ settings.get('site_tagline').value if settings.get('site_tagline') else '' }}"
+             class="w-full px-4 py-2.5 rounded-xl bg-bg border border-white/10" />
+    </div>
+    <div>
+      <label class="block text-xs uppercase text-gray-500 mb-1.5">Contact Telegram</label>
+      <input type="text" name="contact_telegram"
+             value="{{ settings.get('contact_telegram').value if settings.get('contact_telegram') else '' }}"
+             class="w-full px-4 py-2.5 rounded-xl bg-bg border border-white/10" />
+    </div>
+
+    <label class="flex items-center gap-2 cursor-pointer">
+      <input type="checkbox" name="maintenance_mode" {% if settings.get('maintenance_mode') and settings['maintenance_mode'].value == 'true' %}checked{% endif %} class="w-4 h-4 accent-accent" />
+      <span class="text-sm">Maintenance mode (сайт пӯшида)</span>
+    </label>
+  </div>
+
+  <button type="submit" class="px-6 py-3 rounded-xl bg-accent hover:bg-accent/90 text-white font-semibold shadow-lg shadow-accent/30 transition">
+    Захира кардан
+  </button>
+</form>
+{% endblock %}

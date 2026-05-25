@@ -1,0 +1,43 @@
+{% extends 'admin/_layout.html' %}
+{% block title %}Users — Admin{% endblock %}
+
+{% block admin_content %}
+<h1 class="text-2xl font-bold mb-6">Корбарон ({{ pagination.total }})</h1>
+
+<div class="rounded-2xl bg-panel border border-white/10 overflow-hidden">
+  {% if users %}
+  <table class="w-full text-sm">
+    <thead class="bg-white/5 text-xs uppercase text-gray-400">
+      <tr>
+        <th class="px-4 py-3 text-left">ID</th>
+        <th class="px-4 py-3 text-left">Name</th>
+        <th class="px-4 py-3 text-left">Telegram</th>
+        <th class="px-4 py-3 text-left">Email</th>
+        <th class="px-4 py-3 text-left">Joined</th>
+        <th class="px-4 py-3 text-left">Last login</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-white/5">
+      {% for u in users %}
+      <tr class="hover:bg-white/5">
+        <td class="px-4 py-3 font-mono">#{{ u.id }}</td>
+        <td class="px-4 py-3 flex items-center gap-2">
+          {% if u.photo_url %}
+            <img src="{{ u.photo_url }}" class="w-7 h-7 rounded-full" />
+          {% endif %}
+          <span>{{ u.display_name }}</span>
+          {% if u.is_admin %}<span class="text-xs px-1.5 py-0.5 rounded bg-accent/10 text-accent border border-accent/30">admin</span>{% endif %}
+        </td>
+        <td class="px-4 py-3 text-xs">{{ u.telegram_id or '—' }}</td>
+        <td class="px-4 py-3 text-xs">{{ u.email or '—' }}</td>
+        <td class="px-4 py-3 text-xs text-gray-400">{{ u.created_at.strftime('%Y-%m-%d') }}</td>
+        <td class="px-4 py-3 text-xs text-gray-400">{{ u.last_login_at.strftime('%Y-%m-%d %H:%M') if u.last_login_at else '—' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="p-12 text-center text-gray-500">Корбар нест.</div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+.venv/
+
+# Flask
+instance/
+*.db
+*.sqlite
+*.sqlite3
+
+# Environment
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Migrations (uncomment if you don't want to track)
+# migrations/
+
+# Uploads
+app/static/uploads/*
+!app/static/uploads/.gitkeep
+
+# Logs
+*.log
+logs/

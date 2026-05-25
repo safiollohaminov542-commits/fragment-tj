@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block title %}Заказҳои ман — Fragment TJ{% endblock %}
+
+{% block content %}
+<h1 class="text-3xl font-bold mb-6">Заказҳои ман</h1>
+
+{% if orders %}
+<div class="space-y-3">
+  {% for order in orders %}
+  <div class="rounded-2xl bg-panel border border-white/10 p-5 flex flex-wrap items-center gap-4">
+    <div class="w-16 h-16 rounded-xl bg-white/5 overflow-hidden flex-shrink-0">
+      {% if order.gift.image_url %}
+        <img src="{{ order.gift.image_url }}" class="w-full h-full object-cover" />
+      {% else %}
+        <div class="w-full h-full flex items-center justify-center text-2xl">🎁</div>
+      {% endif %}
+    </div>
+    <div class="flex-1 min-w-0">
+      <div class="font-semibold truncate">{{ order.gift.title }}</div>
+      <div class="text-xs text-gray-500">Order #{{ order.id }} · {{ order.created_at.strftime('%Y-%m-%d %H:%M') }}</div>
+    </div>
+    <div class="text-right">
+      <div class="font-bold text-accent">{{ order.ton_price }} TON</div>
+      <div class="text-xs text-gray-400">{{ "%.2f"|format(order.tjs_price) }} TJS</div>
+    </div>
+    <div>
+      {% set color = {'pending': 'amber', 'paid': 'blue', 'completed': 'emerald', 'cancelled': 'red'}.get(order.status, 'gray') %}
+      <span class="px-3 py-1 rounded-lg bg-{{ color }}-500/10 border border-{{ color }}-500/30 text-{{ color }}-300 text-xs uppercase">{{ order.status }}</span>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-20 rounded-2xl bg-panel border border-white/5">
+  <div class="text-5xl mb-3 opacity-50">📦</div>
+  <p class="text-gray-400">Шумо ҳоло заказ надоред.</p>
+  <a href="{{ url_for('main.gifts_list') }}" class="inline-block mt-4 px-5 py-2 rounded-xl bg-accent hover:bg-accent/90 text-white text-sm transition">Дидани Gifts</a>
+</div>
+{% endif %}
+{% endblock %}
