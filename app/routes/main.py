@@ -1,10 +1,25 @@
 """Public routes — homepage, gift listing, gift details."""
-from flask import Blueprint, render_template, abort, request, redirect, url_for, flash
+from flask import (
+    Blueprint,
+    render_template,
+    abort,
+    request,
+    redirect,
+    url_for,
+    flash,
+    jsonify,
+    current_app,
+)
 from flask_login import login_required, current_user
 
 from app import db
 from app.models import Gift, Order, Settings
 from app.services.ton_price import get_current_ton_rate
+from app.services.ton_connect import (
+    generate_payment_comment,
+    check_payment_received,
+    get_merchant_wallet,
+)
 
 main_bp = Blueprint("main", __name__)
 
@@ -92,7 +107,7 @@ def gift_detail(slug: str):
 @main_bp.route("/buy/<int:gift_id>", methods=["POST"])
 @login_required
 def buy(gift_id: int):
-    """Сохтани order (pending). Pay-флоуи воқеӣ дар ин MVP нест."""
+    """Сохтани order бо unique payment_comment."""
     gift = Gift.query.get_or_404(gift_id)
     if not gift.is_available or gift.quantity < 1:
         flash("Ин gift дастрас нест.", "error")
@@ -109,14 +124,57 @@ def buy(gift_id: int):
         tjs_price=gift.get_tjs_price(rate),
         ton_rate_at_purchase=rate,
         contact_info=contact or None,
+        payment_comment=generate_payment_comment(),
         status="pending",
     )
     db.session.add(order)
     db.session.commit()
-    flash(
-        f"Order #{order.id} сохта шуд! Барои пардохт бо мо тамос гиред.", "success"
+
+    return redirect(url_for("main.order_detail", order_id=order.id))
+
+
+@main_bp.route("/orders/<int:order_id>")
+@login_required
+def order_detail(order_id: int):
+    order = Order.query.get_or_404(order_id)
+    if order.user_id != current_user.id and not current_user.is_admin:
+        abort(403)
+    merchant = get_merchant_wallet()
+    return render_template(
+        "orders/detail.html",
+        order=order,
+        merchant_wallet=merchant,
     )
-    return redirect(url_for("main.my_orders"))
+
+
+@main_bp.route("/orders/<int:order_id>/check-payment", methods=["POST"])
+@login_required
+def check_payment(order_id: int):
+    """Polling — TX-ро дар TON blockchain тавассути tonapi.io санҷидан."""
+    order = Order.query.get_or_404(order_id)
+    if order.user_id != current_user.id and not current_user.is_admin:
+        return jsonify({"error": "forbidden"}), 403
+
+    if order.status != "pending":
+        return jsonify({"ok": True, "status": order.status, "tx_hash": order.tx_hash})
+
+    if not order.payment_comment:
+        return jsonify({"ok": False, "error": "Order бе payment_comment"}), 400
+
+    result = check_payment_received(
+        expected_amount_ton=order.ton_price,
+        expected_comment=order.payment_comment,
+    )
+    if result:
+        order.status = "paid"
+        order.tx_hash = result["tx_hash"]
+        order.payer_wallet = result["from_address"]
+        db.session.commit()
+        return jsonify(
+            {"ok": True, "status": "paid", "tx_hash": result["tx_hash"]}
+        )
+
+    return jsonify({"ok": True, "status": "pending"})
 
 
 @main_bp.route("/orders")

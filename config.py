@@ -39,6 +39,9 @@ class Config:
     )
     DEFAULT_TON_TJS_RATE = float(os.getenv("DEFAULT_TON_TJS_RATE", "52.0"))
 
+    # TON API (для verification payment)
+    TONAPI_KEY = os.getenv("TONAPI_KEY", "")
+
     # Uploads
     UPLOAD_FOLDER = basedir / "app" / "static" / "uploads"
     MAX_CONTENT_LENGTH = 5 * 1024 * 1024  # 5 MB

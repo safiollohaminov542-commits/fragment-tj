@@ -20,6 +20,7 @@ from werkzeug.utils import secure_filename
 from app import db
 from app.models import Gift, Order, Settings, User
 from app.services.ton_price import get_current_ton_rate, invalidate_cache
+from app.services.fragment_parser import parse_fragment_url, FragmentParseError
 
 admin_bp = Blueprint("admin", __name__)
 
@@ -93,6 +94,67 @@ def gifts():
     return render_template(
         "admin/gifts.html", pagination=pagination, gifts=pagination.items
     )
+
+
+# === Fragment Auto-Import ===
+@admin_bp.route("/gifts/import", methods=["POST"])
+@admin_required
+def gift_import():
+    """Аз Fragment URL автомат gift месозад."""
+    fragment_url = request.form.get("fragment_url", "").strip()
+    if not fragment_url:
+        flash("Fragment URL лозим аст.", "error")
+        return redirect(url_for("admin.gift_new"))
+
+    try:
+        data = parse_fragment_url(fragment_url)
+    except FragmentParseError as e:
+        flash(f"Хато ҳангоми import: {e}", "error")
+        return redirect(url_for("admin.gift_new"))
+
+    title = data.title or "Untitled Fragment Gift"
+    slug = _slugify(title)
+    if Gift.query.filter_by(slug=slug).first():
+        slug = f"{slug}-{uuid.uuid4().hex[:6]}"
+
+    gift = Gift(
+        title=title,
+        slug=slug,
+        description=data.description,
+        image_url=data.image_url,
+        ton_price=data.ton_price or 0.0,
+        fragment_url=data.fragment_url,
+        collection=data.collection,
+        rarity=data.rarity,
+        is_available=True,
+        quantity=1,
+    )
+    db.session.add(gift)
+    db.session.commit()
+
+    flash(
+        f"✓ Imported: {gift.title} ({gift.ton_price} TON). "
+        "Лутфан маълумотро санҷида захира кунед.",
+        "success",
+    )
+    return redirect(url_for("admin.gift_edit", gift_id=gift.id))
+
+
+@admin_bp.route("/gifts/import/preview", methods=["POST"])
+@admin_required
+def gift_import_preview():
+    """AJAX preview — бе сохтани gift, фақат маълумотро бармегардонад."""
+    from flask import jsonify
+
+    payload = request.get_json(silent=True) or {}
+    fragment_url = (payload.get("fragment_url") or request.form.get("fragment_url", "")).strip()
+    if not fragment_url:
+        return jsonify({"error": "URL лозим аст"}), 400
+    try:
+        data = parse_fragment_url(fragment_url)
+        return jsonify({"ok": True, "data": data.to_dict()})
+    except FragmentParseError as e:
+        return jsonify({"ok": False, "error": str(e)}), 400
 
 
 @admin_bp.route("/gifts/new", methods=["GET", "POST"])

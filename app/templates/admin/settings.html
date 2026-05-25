@@ -61,6 +61,24 @@
     </label>
   </div>
 
+  <div class="rounded-2xl bg-panel border border-white/10 p-5 space-y-4">
+    <h2 class="font-semibold flex items-center gap-2">
+      <svg class="w-5 h-5 text-accent" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0L0 6.6L12 24L24 6.6L12 0Z"/></svg>
+      TON Payment
+    </h2>
+    <div>
+      <label class="block text-xs uppercase text-gray-500 mb-1.5">Merchant TON Wallet *</label>
+      <input type="text" name="merchant_ton_wallet"
+             value="{{ settings.get('merchant_ton_wallet').value if settings.get('merchant_ton_wallet') else '' }}"
+             placeholder="UQ... ё EQ..."
+             class="w-full px-4 py-2.5 rounded-xl bg-bg border border-white/10 font-mono text-sm" />
+      <p class="text-xs text-gray-500 mt-1.5">
+        Wallet адресе ки payments-и user-ҳо ба он мерасад.
+        Барои санҷиши автомати TX, <code>TONAPI_KEY</code>-ро дар <code>.env</code> гузоред.
+      </p>
+    </div>
+  </div>
+
   <button type="submit" class="px-6 py-3 rounded-xl bg-accent hover:bg-accent/90 text-white font-semibold shadow-lg shadow-accent/30 transition">
     Захира кардан
   </button>

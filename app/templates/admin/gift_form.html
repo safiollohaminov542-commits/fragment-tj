@@ -5,6 +5,46 @@
 <a href="{{ url_for('admin.gifts') }}" class="text-sm text-gray-400 hover:text-white">← Ба рӯйхат</a>
 <h1 class="text-2xl font-bold my-4">{% if gift %}Тағйир: {{ gift.title }}{% else %}Иловаи Gift нав{% endif %}</h1>
 
+{% if not gift %}
+<!-- Quick Import аз Fragment -->
+<div class="rounded-2xl bg-gradient-to-br from-accent/10 to-accent2/5 border border-accent/30 p-5 mb-6">
+  <div class="flex items-center gap-2 mb-3">
+    <svg class="w-5 h-5 text-accent" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0L0 6.6L12 24L24 6.6L12 0Z"/></svg>
+    <h2 class="font-semibold">Quick Import аз Fragment.com</h2>
+  </div>
+  <p class="text-xs text-gray-400 mb-3">URL-и Fragment-ро гузоред — система автомат title, image, нархро мегирад.</p>
+
+  <div class="flex flex-col sm:flex-row gap-2">
+    <input id="import-url" type="url" placeholder="https://fragment.com/gift/xxxxx"
+           class="flex-1 px-4 py-2.5 rounded-xl bg-bg border border-white/10 focus:border-accent focus:outline-none text-sm" />
+    <button type="button" id="btn-preview" class="px-5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-sm font-medium transition">
+      Preview
+    </button>
+    <form method="POST" action="{{ url_for('admin.gift_import') }}" id="import-form" class="contents">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+      <input type="hidden" name="fragment_url" id="import-url-hidden" />
+      <button type="submit" id="btn-import" class="px-5 py-2.5 rounded-xl bg-accent hover:bg-accent/90 text-white text-sm font-medium shadow-lg shadow-accent/30 transition">
+        Import
+      </button>
+    </form>
+  </div>
+
+  <!-- Preview area -->
+  <div id="preview-area" class="hidden mt-4 p-4 rounded-xl bg-bg/50 border border-white/10">
+    <div class="flex gap-4">
+      <img id="preview-image" src="" class="w-24 h-24 rounded-xl object-cover bg-white/5" />
+      <div class="flex-1 min-w-0">
+        <div id="preview-title" class="font-semibold truncate"></div>
+        <div id="preview-price" class="text-accent font-bold mt-1"></div>
+        <div id="preview-collection" class="text-xs text-gray-400 mt-0.5"></div>
+        <div id="preview-rarity" class="text-xs text-gray-500 mt-0.5"></div>
+      </div>
+    </div>
+  </div>
+  <div id="preview-error" class="hidden mt-3 text-sm text-red-400"></div>
+</div>
+{% endif %}
+
 <form method="POST" enctype="multipart/form-data" class="grid md:grid-cols-2 gap-6">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
 
@@ -98,4 +138,58 @@
     </button>
   </div>
 </form>
+
+{% if not gift %}
+<script>
+(function () {
+  const urlInput = document.getElementById('import-url');
+  const hiddenInput = document.getElementById('import-url-hidden');
+  const btnPreview = document.getElementById('btn-preview');
+  const previewArea = document.getElementById('preview-area');
+  const previewError = document.getElementById('preview-error');
+
+  function syncHidden() {
+    hiddenInput.value = urlInput.value.trim();
+  }
+  urlInput.addEventListener('input', syncHidden);
+  syncHidden();
+
+  btnPreview.addEventListener('click', async () => {
+    const url = urlInput.value.trim();
+    previewArea.classList.add('hidden');
+    previewError.classList.add('hidden');
+    if (!url) {
+      previewError.textContent = 'URL гузоред.';
+      previewError.classList.remove('hidden');
+      return;
+    }
+    btnPreview.disabled = true;
+    btnPreview.textContent = 'Loading...';
+    try {
+      const csrf = document.querySelector('input[name="csrf_token"]').value;
+      const r = await fetch("{{ url_for('admin.gift_import_preview') }}", {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf },
+        body: JSON.stringify({ fragment_url: url }),
+      });
+      const data = await r.json();
+      if (!data.ok) throw new Error(data.error || 'Хато');
+      const d = data.data;
+      document.getElementById('preview-image').src = d.image_url || '';
+      document.getElementById('preview-title').textContent = d.title || '—';
+      document.getElementById('preview-price').textContent = d.ton_price ? `${d.ton_price} TON` : 'Нарх ёфт нашуд';
+      document.getElementById('preview-collection').textContent = d.collection || '';
+      document.getElementById('preview-rarity').textContent = d.rarity || '';
+      previewArea.classList.remove('hidden');
+    } catch (e) {
+      previewError.textContent = e.message;
+      previewError.classList.remove('hidden');
+    } finally {
+      btnPreview.disabled = false;
+      btnPreview.textContent = 'Preview';
+    }
+  });
+})();
+</script>
+{% endif %}
 {% endblock %}

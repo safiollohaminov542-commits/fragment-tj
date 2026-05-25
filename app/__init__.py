@@ -40,18 +40,28 @@ def create_app(config_name: str = "default") -> Flask:
 
     # CSRF exemption барои webhook/API endpoints
     csrf.exempt(api_bp)
+    # TON Connect endpoints — JSON only, без CSRF (state дар session)
+    from app.routes.auth import ton_payload, ton_verify
+    csrf.exempt(ton_payload)
+    csrf.exempt(ton_verify)
+    from app.routes.admin import gift_import_preview
+    csrf.exempt(gift_import_preview)
+    from app.routes.main import check_payment
+    csrf.exempt(check_payment)
 
     # Ensure upload folder exists
     app.config["UPLOAD_FOLDER"].mkdir(parents=True, exist_ok=True)
 
     # Template context processors
     from app.services.ton_price import get_current_ton_rate
+    from app.models.settings import Settings
 
     @app.context_processor
     def inject_globals():
         return {
             "ton_rate": get_current_ton_rate(),
             "bot_username": app.config["TELEGRAM_BOT_USERNAME"],
+            "Settings": Settings,
         }
 
     return app

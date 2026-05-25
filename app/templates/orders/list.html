@@ -7,7 +7,8 @@
 {% if orders %}
 <div class="space-y-3">
   {% for order in orders %}
-  <div class="rounded-2xl bg-panel border border-white/10 p-5 flex flex-wrap items-center gap-4">
+  <a href="{{ url_for('main.order_detail', order_id=order.id) }}"
+     class="block rounded-2xl bg-panel border border-white/10 hover:border-accent/40 p-5 flex flex-wrap items-center gap-4 transition">
     <div class="w-16 h-16 rounded-xl bg-white/5 overflow-hidden flex-shrink-0">
       {% if order.gift.image_url %}
         <img src="{{ order.gift.image_url }}" class="w-full h-full object-cover" />
@@ -27,7 +28,7 @@
       {% set color = {'pending': 'amber', 'paid': 'blue', 'completed': 'emerald', 'cancelled': 'red'}.get(order.status, 'gray') %}
       <span class="px-3 py-1 rounded-lg bg-{{ color }}-500/10 border border-{{ color }}-500/30 text-{{ color }}-300 text-xs uppercase">{{ order.status }}</span>
     </div>
-  </div>
+  </a>
   {% endfor %}
 </div>
 {% else %}

@@ -15,6 +15,7 @@ class User(UserMixin, db.Model):
     telegram_id = db.Column(db.BigInteger, unique=True, nullable=True, index=True)
     google_id = db.Column(db.String(120), unique=True, nullable=True, index=True)
     email = db.Column(db.String(255), unique=True, nullable=True, index=True)
+    ton_wallet = db.Column(db.String(80), unique=True, nullable=True, index=True)
 
     # Profile
     username = db.Column(db.String(80), nullable=True)
@@ -42,6 +43,8 @@ class User(UserMixin, db.Model):
             return f"@{self.username}"
         if self.email:
             return self.email
+        if self.ton_wallet:
+            return f"{self.ton_wallet[:4]}...{self.ton_wallet[-4:]}"
         return f"User #{self.id}"
 
     @property

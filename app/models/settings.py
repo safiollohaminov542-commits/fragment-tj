@@ -23,6 +23,10 @@ class Settings(db.Model):
         "site_tagline": ("Маркетплейси Telegram Gifts дар Тоҷикистон", "Tagline"),
         "contact_telegram": ("@your_username", "Telegram барои тамос"),
         "maintenance_mode": ("false", "Маинтенанс — сайт пӯшида"),
+        "merchant_ton_wallet": (
+            "",
+            "TON wallet барои қабули payment (UQ... ё EQ...)",
+        ),
     }
 
     @classmethod

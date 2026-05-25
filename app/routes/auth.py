@@ -1,4 +1,4 @@
-"""Auth routes — Telegram Login + Google OAuth."""
+"""Auth routes — Telegram Login + Google OAuth + TON Connect."""
 from datetime import datetime
 from flask import (
     Blueprint,
@@ -10,6 +10,7 @@ from flask import (
     current_app,
     session,
     abort,
+    jsonify,
 )
 from flask_login import login_user, logout_user, login_required, current_user
 
@@ -17,6 +18,10 @@ from app import db
 from app.models import User
 from app.services.telegram_auth import verify_telegram_auth
 from app.services.google_auth import oauth, init_google_oauth
+from app.services.ton_connect import (
+    generate_proof_payload,
+    verify_ton_proof,
+)
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -122,3 +127,51 @@ def logout():
     logout_user()
     flash("Шумо аз система баромадед.", "info")
     return redirect(url_for("main.index"))
+
+
+# === TON Connect ===
+@auth_bp.route("/ton/payload", methods=["GET"])
+def ton_payload():
+    """Random payload-ро ба session мегузорад ва бармегардонад."""
+    payload = generate_proof_payload()
+    session["ton_proof_payload"] = payload
+    return jsonify({"payload": payload})
+
+
+@auth_bp.route("/ton/verify", methods=["POST"])
+def ton_verify():
+    """
+    TON Proof-ро санҷида, user-ро login мекунад.
+
+    Frontend ин-ро мефиристад:
+    {
+      "address": "0:abc...",
+      "public_key": "hex...",
+      "proof": {
+         "timestamp": 1234567890,
+         "domain": {"lengthBytes": 12, "value": "localhost"},
+         "signature": "base64...",
+         "payload": "hex..."
+      }
+    }
+    """
+    payload = request.get_json(silent=True) or {}
+    expected = session.pop("ton_proof_payload", None)
+
+    domain = request.host.split(":")[0]  # localhost ё domain.tj
+    is_valid, address = verify_ton_proof(
+        payload, expected_payload=expected, expected_domain=domain
+    )
+    if not is_valid or not address:
+        return jsonify({"ok": False, "error": "Invalid TON proof"}), 400
+
+    user = User.query.filter_by(ton_wallet=address).first()
+    if not user:
+        user = User(ton_wallet=address)
+        db.session.add(user)
+
+    user.last_login_at = datetime.utcnow()
+    db.session.commit()
+
+    login_user(user, remember=True)
+    return jsonify({"ok": True, "redirect": url_for("main.index")})

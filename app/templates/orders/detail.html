@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+{% block title %}Заказ #{{ order.id }} — Fragment TJ{% endblock %}
+
+{% block content %}
+<a href="{{ url_for('main.my_orders') }}" class="text-sm text-gray-400 hover:text-white">← Заказҳои ман</a>
+
+<div class="max-w-2xl mx-auto mt-6 animate-slide-up">
+  <h1 class="text-2xl font-bold mb-6">Заказ #{{ order.id }}</h1>
+
+  <!-- Order summary -->
+  <div class="rounded-2xl bg-panel border border-white/10 p-5 mb-4">
+    <div class="flex gap-4">
+      <div class="w-20 h-20 rounded-xl bg-white/5 overflow-hidden flex-shrink-0">
+        {% if order.gift.image_url %}
+          <img src="{{ order.gift.image_url }}" class="w-full h-full object-cover" />
+        {% else %}
+          <div class="w-full h-full flex items-center justify-center text-3xl">🎁</div>
+        {% endif %}
+      </div>
+      <div class="flex-1 min-w-0">
+        <div class="font-semibold">{{ order.gift.title }}</div>
+        {% if order.gift.collection %}
+          <div class="text-xs text-gray-400">{{ order.gift.collection }}</div>
+        {% endif %}
+        <div class="mt-2 flex items-baseline gap-2">
+          <svg class="w-4 h-4 text-accent" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0L0 6.6L12 24L24 6.6L12 0Z"/></svg>
+          <span class="text-2xl font-bold text-accent">{{ order.ton_price }}</span>
+          <span class="text-sm text-gray-400">TON</span>
+          <span class="text-sm text-gray-400 ml-2">≈ {{ "%.2f"|format(order.tjs_price) }} TJS</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Status -->
+  <div id="payment-status"
+       class="p-4 rounded-xl mb-4
+       {% if order.status == 'paid' or order.status == 'completed' %}
+         bg-emerald-500/10 border border-emerald-500/30 text-emerald-300
+       {% elif order.status == 'cancelled' %}
+         bg-red-500/10 border border-red-500/30 text-red-300
+       {% else %}
+         bg-amber-500/10 border border-amber-500/30 text-amber-300
+       {% endif %} text-sm">
+    {% if order.status == 'pending' %}
+      ⏳ Pardoxt интизорӣ...
+    {% elif order.status == 'paid' %}
+      ✓ Пардохт қабул шуд!
+      {% if order.tx_hash %}
+        <div class="text-xs mt-1 font-mono opacity-70">TX: {{ order.tx_hash[:24] }}...</div>
+      {% endif %}
+    {% elif order.status == 'completed' %}
+      ✓ Заказ ба итмом расид!
+    {% elif order.status == 'cancelled' %}
+      ✗ Заказ бекор карда шуд
+    {% endif %}
+  </div>
+
+  {% if order.status == 'pending' %}
+  <!-- Payment box -->
+  <div class="rounded-2xl bg-panel border border-white/10 p-5 mb-4">
+    <h2 class="font-semibold mb-3 flex items-center gap-2">
+      <svg class="w-5 h-5 text-accent" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0L0 6.6L12 24L24 6.6L12 0Z"/></svg>
+      Pardoxt бо TON
+    </h2>
+
+    {% if not merchant_wallet %}
+      <div class="p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-300 text-sm">
+        Merchant wallet ҳоло конфигуратсия нашудааст. Лутфан бо admin тамос гиред.
+      </div>
+    {% else %}
+      <div class="text-sm text-gray-400 space-y-2 mb-4">
+        <div class="flex justify-between">
+          <span>Маблағ:</span>
+          <span class="font-bold text-accent">{{ order.ton_price }} TON</span>
+        </div>
+        <div class="flex justify-between">
+          <span>Comment:</span>
+          <code class="bg-bg px-2 py-0.5 rounded text-xs">{{ order.payment_comment }}</code>
+        </div>
+        <div class="flex justify-between items-start gap-2">
+          <span class="flex-shrink-0">Receiver:</span>
+          <code class="bg-bg px-2 py-0.5 rounded text-xs break-all text-right">{{ merchant_wallet }}</code>
+        </div>
+      </div>
+
+      <button id="btn-pay-ton" class="w-full py-3 rounded-xl bg-gradient-to-r from-accent to-accent2 hover:opacity-90 text-white font-semibold shadow-lg shadow-accent/30 transition flex items-center justify-center gap-2">
+        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0L0 6.6L12 24L24 6.6L12 0Z"/></svg>
+        Pardoxt бо TON Wallet
+      </button>
+
+      <button id="btn-check-payment" class="w-full mt-2 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-sm transition">
+        Manual санҷидани TX
+      </button>
+
+      <p class="text-xs text-gray-500 mt-3 text-center">
+        Бе TON Connect: TON-ро бо comment <code>{{ order.payment_comment }}</code>
+        ба адреси боло мефиристед — система автомат полchecked мешавад.
+      </p>
+    {% endif %}
+  </div>
+
+  <!-- Manual contact fallback -->
+  <div class="rounded-2xl bg-panel border border-white/10 p-5">
+    <h3 class="font-semibold text-sm mb-2">Ё бо мо тамос гиред</h3>
+    <p class="text-xs text-gray-400 mb-3">Агар бо TON wallet кор намекунад — мо метавонем дастӣ ёрӣ диҳем.</p>
+    <a href="https://t.me/{{ Settings.get('contact_telegram', 'fragmentj_support').lstrip('@') if Settings else 'fragmentj_support' }}"
+       target="_blank"
+       class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-sm transition">
+      📨 Telegram
+    </a>
+  </div>
+  {% endif %}
+</div>
+
+{% block scripts %}
+{% if order.status == 'pending' and merchant_wallet %}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    if (!window.FragmentTJ) return;
+
+    window.FragmentTJ.setupCheckButton({{ order.id }});
+
+    const payBtn = document.getElementById("btn-pay-ton");
+    if (payBtn) {
+      payBtn.addEventListener("click", async () => {
+        payBtn.disabled = true;
+        const ok = await window.FragmentTJ.payOrder({
+          merchantWallet: {{ merchant_wallet | tojson }},
+          amountTon: {{ order.ton_price }},
+          comment: {{ order.payment_comment | tojson }},
+          orderId: {{ order.id }},
+        });
+        if (!ok) payBtn.disabled = false;
+      });
+    }
+  });
+</script>
+{% endif %}
+{% endblock %}
+{% endblock %}

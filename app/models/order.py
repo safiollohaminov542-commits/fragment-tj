@@ -19,6 +19,11 @@ class Order(db.Model):
         db.String(30), default="pending", nullable=False
     )  # pending, paid, completed, cancelled
 
+    # TON payment fields
+    payment_comment = db.Column(db.String(60), nullable=True, index=True)
+    tx_hash = db.Column(db.String(120), nullable=True, index=True)
+    payer_wallet = db.Column(db.String(80), nullable=True)
+
     contact_info = db.Column(db.String(255), nullable=True)
     notes = db.Column(db.Text, nullable=True)
 
