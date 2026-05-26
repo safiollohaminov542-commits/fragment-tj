@@ -16,7 +16,7 @@ instance/
 *.sqlite3
 
 # Environment
-.env
+# .env  <-- commented out: we ship .env with credentials for quick setup
 .env.local
 
 # IDE
