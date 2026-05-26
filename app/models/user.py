@@ -40,8 +40,13 @@ class User(UserMixin, db.Model):
     orders = db.relationship("Order", backref="user", lazy="dynamic")
     inventory_items = db.relationship("InventoryItem", backref="user", lazy="dynamic")
     transfer_requests = db.relationship("TransferRequest", backref="user", lazy="dynamic")
+    # NB: BalanceTransaction has 2 FK to users (user_id ва admin_id) —
+    # Ин relationship фақат ба user_id мутобиқ аст; admin_id дар BalanceTransaction.admin аст.
     balance_transactions = db.relationship(
-        "BalanceTransaction", backref="user", lazy="dynamic"
+        "BalanceTransaction",
+        foreign_keys="BalanceTransaction.user_id",
+        backref="user",
+        lazy="dynamic",
     )
     verification_codes = db.relationship(
         "VerificationCode", backref="user", lazy="dynamic", cascade="all, delete-orphan"
