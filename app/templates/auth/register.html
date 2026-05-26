@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% block title %}Сабтнома — {{ site_name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto mt-8 animate-slide-up">
+  <div class="rounded-3xl bg-panel border border-white/10 p-8 backdrop-blur">
+    <div class="text-center mb-8">
+      <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-accent to-accent2 flex items-center justify-center text-3xl font-bold shadow-lg shadow-accent/30">
+        F
+      </div>
+      <h1 class="text-2xl font-bold">Ҳисоб эҷод кунед</h1>
+      <p class="text-gray-400 text-sm mt-2">Бо email сабт шавед — зуд ва осон</p>
+    </div>
+
+    <form method="POST" class="space-y-4">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+      <div>
+        <label class="block text-xs uppercase text-gray-500 mb-1.5 tracking-wider">Ном (ихтиёрӣ)</label>
+        <input type="text" name="name" maxlength="120"
+               value="{{ form_name or '' }}"
+               placeholder="Алӣ Раҳимов"
+               autocomplete="name"
+               class="w-full px-4 py-3 rounded-xl bg-bg border border-white/10 focus:border-accent focus:outline-none transition" />
+      </div>
+
+      <div>
+        <label class="block text-xs uppercase text-gray-500 mb-1.5 tracking-wider">Email *</label>
+        <input type="email" name="email" required autofocus
+               value="{{ form_email or '' }}"
+               placeholder="[email protected]"
+               autocomplete="email"
+               class="w-full px-4 py-3 rounded-xl bg-bg border border-white/10 focus:border-accent focus:outline-none transition" />
+      </div>
+
+      <div>
+        <label class="block text-xs uppercase text-gray-500 mb-1.5 tracking-wider">Password *</label>
+        <input type="password" name="password" required minlength="6"
+               placeholder="ҳадди ақал 6 ҳарф"
+               autocomplete="new-password"
+               class="w-full px-4 py-3 rounded-xl bg-bg border border-white/10 focus:border-accent focus:outline-none transition" />
+      </div>
+
+      <div>
+        <label class="block text-xs uppercase text-gray-500 mb-1.5 tracking-wider">Тасдиқи Password *</label>
+        <input type="password" name="password_confirm" required minlength="6"
+               placeholder="••••••••"
+               autocomplete="new-password"
+               class="w-full px-4 py-3 rounded-xl bg-bg border border-white/10 focus:border-accent focus:outline-none transition" />
+      </div>
+
+      <button type="submit" class="w-full py-3 rounded-xl bg-gradient-to-r from-accent to-accent2 hover:opacity-90 text-white font-semibold shadow-lg shadow-accent/30 transition">
+        Ҳисоб эҷод кунед
+      </button>
+    </form>
+
+    <p class="text-center text-sm text-gray-400 mt-6">
+      Аллакай ҳисоб доред?
+      <a href="{{ url_for('auth.login') }}" class="text-accent hover:underline font-medium">Login</a>
+    </p>
+  </div>
+</div>
+{% endblock %}

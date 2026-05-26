@@ -250,3 +250,32 @@ def users():
     return render_template(
         "admin/users.html", pagination=pagination, users=pagination.items
     )
+
+
+@admin_bp.route("/users/<int:user_id>/toggle-admin", methods=["POST"])
+@admin_required
+def user_toggle_admin(user_id):
+    user = User.query.get_or_404(user_id)
+    if user.id == current_user.id:
+        flash("Шумо наметавонед худатонро тағйир диҳед.", "error")
+        return redirect(url_for("admin.users"))
+    user.is_admin = not user.is_admin
+    db.session.commit()
+    status = "admin шуд" if user.is_admin else "оддӣ user шуд"
+    flash(f"{user.email} → {status}", "success")
+    return redirect(url_for("admin.users"))
+
+
+@admin_bp.route("/users/<int:user_id>/toggle-active", methods=["POST"])
+@admin_required
+def user_toggle_active(user_id):
+    user = User.query.get_or_404(user_id)
+    if user.id == current_user.id:
+        flash("Шумо наметавонед худатонро block кунед.", "error")
+        return redirect(url_for("admin.users"))
+    user.is_active = not user.is_active
+    db.session.commit()
+    flash(
+        f"{user.email} → {'фаъол' if user.is_active else 'block'}", "success"
+    )
+    return redirect(url_for("admin.users"))

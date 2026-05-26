@@ -1,42 +1,55 @@
 # Fragment TJ
 
-Marketplace барои Telegram Gifts дар Тоҷикистон — clone-и сабуки [fragment.com](https://fragment.com) бо Flask.
+Marketplace барои Telegram Gifts дар Тоҷикистон. Зеҳнӣ ва осон — фақат email лозим аст барои регистратсия.
 
-## Хусусиятҳо
+## ✨ Хусусиятҳо
 
+- 📧 **Email-only authentication** — фақат email + 6-digit code тавассути Gmail SMTP
 - 🎁 **Gift catalog** бо search, filter, pagination
-- 💰 **TON → TJS converter** автоматӣ аз CoinGecko + manual override
-- 🔐 **Auth**: Telegram Login Widget + Google OAuth
-- 👨‍💼 **Admin panel**: gifts, orders, users, settings
-- 🌑 **Dark theme** бо TailwindCSS ва glass effect
+- 💰 **TON → TJS converter** аз CoinGecko API + manual override
+- 👨‍💼 **Admin panel** — gift management, orders, users, settings
+- 🌑 **Dark theme** бо TailwindCSS, glass effect, animations
 - 📦 **Order system** (pending → paid → completed)
-- 🛡️ CSRF protection, secure password handling
+- 🛡️ Rate-limiting барои code resend, expiration, attempt counter
+- 🔒 Password hashing (Werkzeug PBKDF2)
+- ✅ CSRF protection
 
-## Stack
+## 🛠 Stack
 
-- **Backend**: Flask 3, SQLAlchemy, Flask-Login, Flask-Migrate, Authlib
+- **Backend**: Flask 3, SQLAlchemy, Flask-Login, Flask-Mail, Flask-Migrate
 - **Frontend**: Jinja2 + TailwindCSS (CDN) + vanilla JS
 - **Database**: SQLite (dev) / PostgreSQL (prod)
-- **Auth**: Telegram Login Widget (HMAC-SHA256), Google OAuth 2.0
+- **Email**: Gmail SMTP бо App Password
 
-## Сохтори проект
+## 📂 Сохтори проект
 
 ```
 fragment-tj/
 ├── app/
 │   ├── __init__.py          # App factory
-│   ├── models/              # User, Gift, Order, Settings
+│   ├── models/
+│   │   ├── user.py          # User бо email + password
+│   │   ├── verification.py  # 6-digit codes
+│   │   ├── gift.py
+│   │   ├── order.py
+│   │   └── settings.py
 │   ├── routes/              # main, auth, admin, api
-│   ├── services/            # ton_price, telegram_auth, google_auth
-│   ├── templates/           # Jinja2 templates
-│   └── static/              # CSS, JS, uploads
+│   ├── services/
+│   │   ├── mail.py          # Flask-Mail integration
+│   │   └── ton_price.py     # CoinGecko
+│   ├── templates/
+│   │   ├── auth/            # login, register, verify
+│   │   ├── emails/          # verification_code.html
+│   │   ├── admin/
+│   │   └── ...
+│   └── static/
 ├── config.py
 ├── run.py
 ├── requirements.txt
 └── .env.example
 ```
 
-## Кор андохтан (Quick Start)
+## 🚀 Кор андохтан (Quick Start)
 
 ### 1. Clone ва virtual environment
 
@@ -44,29 +57,42 @@ fragment-tj/
 git clone https://github.com/safiollohaminov542-commits/fragment-tj.git
 cd fragment-tj
 python3 -m venv venv
-source venv/bin/activate    # Windows: venv\Scripts\activate
+source venv/bin/activate   # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### 2. Environment
+### 2. Gmail App Password ҳосил кунед
+
+Барои фиристодани email тавассути Gmail SMTP, App Password лозим:
+
+1. **2-Step Verification фаъол кунед** дар [myaccount.google.com/security](https://myaccount.google.com/security)
+2. Ба [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords) равед
+3. **App name**: `Fragment TJ` → **Create**
+4. 16-character password copy кунед (масалан `lwte iydu jnbh exsr`) — фосиларо нест кунед
+
+### 3. `.env` созед
 
 ```bash
 cp .env.example .env
-# .env-ро тағйир диҳед — ҳадди ақал SECRET_KEY ва ADMIN_TELEGRAM_IDS
+nano .env
 ```
 
-Параметрҳои муҳим дар `.env`:
+Минимум қимматҳои зеринро гузоред:
 
-| Параметр | Тавсиф |
-|---|---|
-| `SECRET_KEY` | Random string (масалан `python -c "import secrets; print(secrets.token_hex(32))"`) |
-| `DATABASE_URL` | SQLite default; барои production PostgreSQL |
-| `TELEGRAM_BOT_TOKEN` | Аз [@BotFather](https://t.me/BotFather) |
-| `TELEGRAM_BOT_USERNAME` | Username-и bot (бе `@`) |
-| `GOOGLE_CLIENT_ID` / `_SECRET` | Аз [Google Cloud Console](https://console.cloud.google.com) |
-| `ADMIN_TELEGRAM_IDS` | Бо вергул ҷудо: `123456789,987654321` |
+```ini
+SECRET_KEY=ҳосил-кунед-бо-secrets.token_hex(32)
+[email protected]
+MAIL_PASSWORD=lwteiydujnbhexsr   # бе фосила!
+[email protected]
+[email protected]   # ҳамин email-и шумо ҳамчун admin
+```
 
-### 3. Кор андохтан
+> 💡 SECRET_KEY-и random ҳосил кардан:
+> ```bash
+> python -c "import secrets; print(secrets.token_hex(32))"
+> ```
+
+### 4. Запуск
 
 ```bash
 python run.py
@@ -74,51 +100,71 @@ python run.py
 
 Сайт дар http://localhost:5000 кушода мешавад.
 
-### 4. Аввалин login ҳамчун admin
+### 5. Аввалин login ҳамчун admin
 
-1. `TELEGRAM_BOT_TOKEN` ва `TELEGRAM_BOT_USERNAME`-ро дар `.env` гузоред
-2. Telegram ID-и худро дар `ADMIN_TELEGRAM_IDS` илова кунед (барои гирифтан: ба [@userinfobot](https://t.me/userinfobot) Start занед)
-3. Дар сайт `Login` тугмаро занед → Login бо Telegram
-4. Ба `/admin` гузаред
+1. Ба http://localhost:5000/auth/register равед
+2. Email-и худатонро (ҳамон ки дар `ADMIN_EMAILS` гузоштаед) гузоред
+3. Email-ро санҷед — code-и 6-рақама аз Gmail хоҳед гирифт
+4. Code-ро гузоред → автомат admin мешавед
+5. Ба `/admin` равед
 
-> ⚠️ Telegram Login Widget-ро ҳамчун bot domain дар [@BotFather](https://t.me/BotFather) сабт кардан лозим аст: `/setdomain` → URL-и сайт.
+## 🔐 Auth Flow
 
-## Telegram Login Setup
+```
+Register:
+  email + password → 6-digit code → email → verify → ✓ login
 
-1. Дар Telegram ба [@BotFather](https://t.me/BotFather) равед
-2. `/newbot` → ном ва username интихоб кунед
-3. Token-ро гиред → ба `TELEGRAM_BOT_TOKEN` дар `.env`
-4. `/setdomain` → URL-и сайтро гузоред (барои dev: `localhost`)
+Login:
+  email + password → 6-digit code → email → verify → ✓ login
 
-## Google OAuth Setup
+Resend:
+  cooldown 60s, max 5 attempts per code, 10min lifetime
+```
 
-1. [Google Cloud Console](https://console.cloud.google.com) → новый проект
-2. **APIs & Services** → **Credentials** → **Create OAuth Client ID** (Web application)
-3. **Authorized redirect URI**: `http://localhost:5000/auth/google/callback`
-4. Client ID/Secret-ро ба `.env` гузоред
+## 🎯 Admin Setup
 
-## TON Курс
+Ду роҳ admin шудан:
 
-Система автомат аз [CoinGecko API](https://www.coingecko.com/en/api) курси TON-ро мегирад ва ба TJS табдил медиҳад. 
+**Роҳи 1**: Email-ро дар `.env` → `ADMIN_EMAILS` гузоред — автомат promotion
+```ini
+[email protected]
+```
 
-Барои **manual override**:
-- Ба `/admin/settings` равед
-- "Use Manual Rate" фаъол кунед
-- Manual rate-ро гузоред
+**Роҳи 2**: Дар admin panel дастӣ promote кунед — `/admin/users` → "↑ admin"
 
-Барои як gift алоҳида:
-- Дар admin `Use Manual TJS Price` фаъол кунед
-- Manual TJS Price-ро гузоред
+## 📧 Email Troubleshooting
 
-## Production Deployment
+### Email намерасад / Spam папкаашро тоза кунед
+- Spam папкаро санҷед — Gmail баъзан ба он ҷой мегузорад
+- Аввалин маротиба эҳтимоли spam зиёд аст. Sender-ро "Not Spam" хабар кунед
+
+### `SMTPAuthenticationError`
+- App Password-и нодуруст. Аз нав ҳосил кунед
+- Фосиларо нест кунед: `lwte iydu jnbh exsr` → `lwteiydujnbhexsr`
+
+### `[Errno 111] Connection refused`
+- Firewall port 465-ро block мекунад
+- Альтернатива: TLS port 587-ро санҷед:
+  ```ini
+  MAIL_PORT=587
+  MAIL_USE_TLS=True
+  MAIL_USE_SSL=False
+  ```
+
+### Email фиристода намешавад дар development
+Барои тестинг бе SMTP:
+```ini
+MAIL_SUPPRESS_SEND=True
+```
+Code-ҳо дар log нишон дода мешаванд.
+
+## 🌐 Production Deployment
 
 ### Gunicorn + Nginx
 
 ```bash
 gunicorn -w 4 -b 0.0.0.0:8000 'run:app'
 ```
-
-Nginx config (мисол):
 
 ```nginx
 server {
@@ -139,27 +185,25 @@ server {
 }
 ```
 
-### Database migration ба PostgreSQL
+### PostgreSQL
+
+```ini
+DATABASE_URL=postgresql://user:password@localhost:5432/fragment_tj
+```
 
 ```bash
-# .env
-DATABASE_URL=postgresql://user:password@localhost:5432/fragment_tj
-
-# Initial migration
 flask db init
 flask db migrate -m "init"
 flask db upgrade
 ```
 
-## Хусусиятҳои оянда (TODO)
+## 🔮 TODO (хусусиятҳои оянда)
 
-- [ ] TON wallet connect (TON Connect)
-- [ ] Real payment (TON blockchain)
-- [ ] Telegram Mini App
-- [ ] Auto-parser аз fragment.com бо BeautifulSoup
-- [ ] WebSocket барои real-time price updates
+- [ ] Forgot password flow
+- [ ] User profile editing
+- [ ] Telegram Mini App integration
+- [ ] Real TON payment integration
 - [ ] Multi-language (тоҷикӣ / русӣ / англисӣ)
-- [ ] Telegram bot барои notification
 - [ ] Auction system
 
 ## License

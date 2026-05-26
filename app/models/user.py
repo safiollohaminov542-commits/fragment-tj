@@ -1,7 +1,7 @@
-"""User model."""
+"""User model — email-based authentication."""
 from datetime import datetime
-from flask import current_app
 from flask_login import UserMixin
+from werkzeug.security import generate_password_hash, check_password_hash
 
 from app import db, login_manager
 
@@ -11,47 +11,54 @@ class User(UserMixin, db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
 
-    # Auth identifiers (яктоаш бояд бошад)
-    telegram_id = db.Column(db.BigInteger, unique=True, nullable=True, index=True)
-    google_id = db.Column(db.String(120), unique=True, nullable=True, index=True)
-    email = db.Column(db.String(255), unique=True, nullable=True, index=True)
+    # Email-based auth
+    email = db.Column(db.String(255), unique=True, nullable=False, index=True)
+    password_hash = db.Column(db.String(255), nullable=True)
 
     # Profile
-    username = db.Column(db.String(80), nullable=True)
-    first_name = db.Column(db.String(80), nullable=True)
-    last_name = db.Column(db.String(80), nullable=True)
+    name = db.Column(db.String(120), nullable=True)
     photo_url = db.Column(db.String(500), nullable=True)
 
-    # Meta
+    # Status
     is_active = db.Column(db.Boolean, default=True, nullable=False)
+    is_email_verified = db.Column(db.Boolean, default=False, nullable=False)
+    is_admin = db.Column(db.Boolean, default=False, nullable=False)
+
+    # Timestamps
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-    last_login_at = db.Column(db.DateTime, default=datetime.utcnow)
+    last_login_at = db.Column(db.DateTime, nullable=True)
 
     # Relationships
     orders = db.relationship("Order", backref="user", lazy="dynamic")
+    verification_codes = db.relationship(
+        "VerificationCode", backref="user", lazy="dynamic", cascade="all, delete-orphan"
+    )
+
+    def set_password(self, password: str) -> None:
+        """Hash password бо werkzeug."""
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password: str) -> bool:
+        """Санҷиши password."""
+        if not self.password_hash:
+            return False
+        return check_password_hash(self.password_hash, password)
 
     @property
     def display_name(self) -> str:
-        """Ном барои нишон додан дар UI."""
-        if self.first_name:
-            full = self.first_name
-            if self.last_name:
-                full += f" {self.last_name}"
-            return full
-        if self.username:
-            return f"@{self.username}"
-        if self.email:
-            return self.email
-        return f"User #{self.id}"
+        """Ном барои UI."""
+        if self.name:
+            return self.name
+        # Email-и пеш аз @
+        return self.email.split("@")[0]
 
     @property
-    def is_admin(self) -> bool:
-        """Оё admin аст? (тибқи ADMIN_TELEGRAM_IDS дар .env)."""
-        admin_ids = current_app.config.get("ADMIN_TELEGRAM_IDS", [])
-        return self.telegram_id is not None and self.telegram_id in admin_ids
+    def initial(self) -> str:
+        """Ҳарфи якуми барои avatar fallback."""
+        return (self.display_name[:1] or "?").upper()
 
     def __repr__(self) -> str:
-        return f"<User {self.display_name}>"
+        return f"<User {self.email}>"
 
 
 @login_manager.user_loader

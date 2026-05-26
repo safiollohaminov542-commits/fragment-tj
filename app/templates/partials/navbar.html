@@ -26,8 +26,8 @@
             {% if current_user.photo_url %}
               <img src="{{ current_user.photo_url }}" class="w-6 h-6 rounded-full" alt="" />
             {% else %}
-              <div class="w-6 h-6 rounded-full bg-accent/30 flex items-center justify-center text-xs font-bold">
-                {{ current_user.display_name[:1]|upper }}
+              <div class="w-6 h-6 rounded-full bg-gradient-to-br from-accent to-accent2 flex items-center justify-center text-xs font-bold">
+                {{ current_user.initial }}
               </div>
             {% endif %}
             <span class="hidden sm:inline text-sm">{{ current_user.display_name }}</span>
@@ -41,8 +41,11 @@
           </div>
         </div>
       {% else %}
-        <a href="{{ url_for('auth.login') }}" class="px-4 py-2 rounded-lg bg-accent hover:bg-accent/90 text-white text-sm font-medium transition shadow-lg shadow-accent/30">
+        <a href="{{ url_for('auth.login') }}" class="hidden sm:inline px-4 py-2 rounded-lg hover:bg-white/5 text-sm transition">
           Login
+        </a>
+        <a href="{{ url_for('auth.register') }}" class="px-4 py-2 rounded-lg bg-accent hover:bg-accent/90 text-white text-sm font-medium transition shadow-lg shadow-accent/30">
+          Сабтнома
         </a>
       {% endif %}
     </div>
