@@ -1,7 +1,7 @@
 """Entry point барои Flask app."""
 import os
 from app import create_app, db
-from app.models import User, Gift, Order, Settings
+from app.models import User, Gift, Order, Settings, VerificationCode
 
 app = create_app(os.getenv("FLASK_ENV", "development"))
 
@@ -15,6 +15,7 @@ def make_shell_context():
         "Gift": Gift,
         "Order": Order,
         "Settings": Settings,
+        "VerificationCode": VerificationCode,
     }
 
 
