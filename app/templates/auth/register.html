@@ -12,7 +12,7 @@
       <p class="text-gray-400 text-sm mt-2">Бо email сабт шавед — зуд ва осон</p>
     </div>
 
-    <form method="POST" class="space-y-4">
+    <form method="POST" class="space-y-4" id="register-form">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
 
       <div>
@@ -35,21 +35,35 @@
 
       <div>
         <label class="block text-xs uppercase text-gray-500 mb-1.5 tracking-wider">Password *</label>
-        <input type="password" name="password" required minlength="6"
-               placeholder="ҳадди ақал 6 ҳарф"
-               autocomplete="new-password"
-               class="w-full px-4 py-3 rounded-xl bg-bg border border-white/10 focus:border-accent focus:outline-none transition" />
+        <div class="relative">
+          <input type="password" name="password" id="pw1" required minlength="6"
+                 placeholder="ҳадди ақал 6 ҳарф"
+                 autocomplete="new-password"
+                 class="w-full px-4 py-3 pr-12 rounded-xl bg-bg border border-white/10 focus:border-accent focus:outline-none transition" />
+          <button type="button" id="toggle-pw1" tabindex="-1"
+                  class="absolute inset-y-0 right-0 px-3 flex items-center text-gray-400 hover:text-accent transition text-sm">
+            👁
+          </button>
+        </div>
       </div>
 
       <div>
         <label class="block text-xs uppercase text-gray-500 mb-1.5 tracking-wider">Тасдиқи Password *</label>
-        <input type="password" name="password_confirm" required minlength="6"
-               placeholder="••••••••"
-               autocomplete="new-password"
-               class="w-full px-4 py-3 rounded-xl bg-bg border border-white/10 focus:border-accent focus:outline-none transition" />
+        <div class="relative">
+          <input type="password" name="password_confirm" id="pw2" required minlength="6"
+                 placeholder="ҳамон password-ро такрор кунед"
+                 autocomplete="new-password"
+                 class="w-full px-4 py-3 pr-12 rounded-xl bg-bg border border-white/10 focus:border-accent focus:outline-none transition" />
+          <button type="button" id="toggle-pw2" tabindex="-1"
+                  class="absolute inset-y-0 right-0 px-3 flex items-center text-gray-400 hover:text-accent transition text-sm">
+            👁
+          </button>
+        </div>
+        <!-- Live match indicator -->
+        <div id="match-indicator" class="mt-1.5 text-xs hidden"></div>
       </div>
 
-      <button type="submit" class="w-full py-3 rounded-xl bg-gradient-to-r from-accent to-accent2 hover:opacity-90 text-white font-semibold shadow-lg shadow-accent/30 transition">
+      <button type="submit" id="submit-btn" class="w-full py-3 rounded-xl bg-gradient-to-r from-accent to-accent2 hover:opacity-90 text-white font-semibold shadow-lg shadow-accent/30 transition">
         Ҳисоб эҷод кунед
       </button>
     </form>
@@ -60,4 +74,52 @@
     </p>
   </div>
 </div>
+
+{% block scripts %}
+<script>
+(function () {
+  // Show/hide password toggles
+  function setupToggle(btnId, inputId) {
+    const btn = document.getElementById(btnId);
+    const input = document.getElementById(inputId);
+    if (!btn || !input) return;
+    btn.addEventListener('click', () => {
+      const isHidden = input.type === 'password';
+      input.type = isHidden ? 'text' : 'password';
+      btn.textContent = isHidden ? '🙈' : '👁';
+    });
+  }
+  setupToggle('toggle-pw1', 'pw1');
+  setupToggle('toggle-pw2', 'pw2');
+
+  // Live password match indicator
+  const pw1 = document.getElementById('pw1');
+  const pw2 = document.getElementById('pw2');
+  const indicator = document.getElementById('match-indicator');
+
+  function updateMatch() {
+    if (!pw2.value) {
+      indicator.classList.add('hidden');
+      pw2.classList.remove('border-emerald-500/50', 'border-red-500/50');
+      pw2.classList.add('border-white/10');
+      return;
+    }
+    indicator.classList.remove('hidden');
+    if (pw1.value === pw2.value) {
+      indicator.textContent = '✓ Password-ҳо мутобиқанд';
+      indicator.className = 'mt-1.5 text-xs text-emerald-400';
+      pw2.classList.remove('border-white/10', 'border-red-500/50');
+      pw2.classList.add('border-emerald-500/50');
+    } else {
+      indicator.textContent = '✗ Password-ҳо фарқ мекунанд';
+      indicator.className = 'mt-1.5 text-xs text-red-400';
+      pw2.classList.remove('border-white/10', 'border-emerald-500/50');
+      pw2.classList.add('border-red-500/50');
+    }
+  }
+  pw1.addEventListener('input', updateMatch);
+  pw2.addEventListener('input', updateMatch);
+})();
+</script>
+{% endblock %}
 {% endblock %}
