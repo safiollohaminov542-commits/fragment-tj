@@ -1,51 +1,74 @@
-<nav class="sticky top-0 z-40 backdrop-blur-xl bg-bg/70 border-b border-white/5">
-  <div class="container mx-auto px-4 h-16 flex items-center justify-between">
-    <a href="{{ url_for('main.index') }}" class="flex items-center gap-2 group">
+<nav class="sticky top-0 z-40 backdrop-blur-xl bg-bg/80 border-b border-white/5">
+  <div class="container mx-auto px-4 h-16 flex items-center justify-between gap-4">
+    <a href="{{ url_for('main.index') }}" class="flex items-center gap-2 group flex-shrink-0">
       <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-accent to-accent2 flex items-center justify-center font-bold text-white shadow-lg shadow-accent/30 group-hover:scale-105 transition">
         F
       </div>
-      <span class="font-bold text-lg tracking-tight">Fragment <span class="text-accent">TJ</span></span>
+      <span class="font-bold text-lg tracking-tight hidden sm:inline">
+        Fragment <span class="text-accent">TJ</span>
+      </span>
     </a>
 
     <div class="hidden md:flex items-center gap-1">
-      <a href="{{ url_for('main.index') }}" class="px-4 py-2 rounded-lg hover:bg-white/5 transition text-sm">Асосӣ</a>
-      <a href="{{ url_for('main.gifts_list') }}" class="px-4 py-2 rounded-lg hover:bg-white/5 transition text-sm">Gifts</a>
-      <a href="{{ url_for('main.about') }}" class="px-4 py-2 rounded-lg hover:bg-white/5 transition text-sm">Дар бораи мо</a>
+      <a href="{{ url_for('main.index') }}" class="px-3 py-2 rounded-lg hover:bg-white/5 transition text-sm">{{ t('nav.home') }}</a>
+      <a href="{{ url_for('main.gifts_list') }}" class="px-3 py-2 rounded-lg hover:bg-white/5 transition text-sm">{{ t('nav.gifts') }}</a>
+      <a href="{{ url_for('main.about') }}" class="px-3 py-2 rounded-lg hover:bg-white/5 transition text-sm">{{ t('nav.about') }}</a>
     </div>
 
-    <div class="flex items-center gap-3">
-      <div class="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs">
+    <div class="flex items-center gap-2 ml-auto">
+      <!-- Live rate -->
+      <div class="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs">
         <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
         <span class="text-gray-400">1 TON =</span>
-        <span class="font-semibold text-accent">{{ "%.2f"|format(ton_rate) }} TJS</span>
+        <span class="font-semibold text-accent" data-ton-tjs>{{ "%.2f"|format(rates.ton_tjs) }}</span>
+        <span class="text-gray-400">TJS</span>
+      </div>
+
+      <!-- Language switcher -->
+      <div class="relative group">
+        <button class="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-xs uppercase font-bold transition">
+          {{ current_lang or 'tg' }}
+        </button>
+        <div class="absolute right-0 mt-2 w-32 rounded-xl bg-panel border border-white/10 shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition z-50">
+          <a href="{{ url_for('language.switch_language', lang='tg') }}" class="block px-4 py-2 hover:bg-white/5 rounded-t-xl text-sm {% if current_lang == 'tg' %}text-accent{% endif %}">🇹🇯 Тоҷикӣ</a>
+          <a href="{{ url_for('language.switch_language', lang='ru') }}" class="block px-4 py-2 hover:bg-white/5 rounded-b-xl text-sm {% if current_lang == 'ru' %}text-accent{% endif %}">🇷🇺 Русский</a>
+        </div>
       </div>
 
       {% if current_user.is_authenticated %}
+        <!-- Wallet balance preview -->
+        <a href="{{ url_for('wallet.index') }}"
+           class="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-accent/10 hover:bg-accent/20 border border-accent/30 text-xs transition">
+          <span class="text-accent font-bold">{{ "%.2f"|format(current_user.get_balance(current_user.preferred_currency)) }}</span>
+          <span class="text-gray-400">{{ current_user.preferred_currency }}</span>
+        </a>
+
         <div class="relative group">
-          <button class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition">
-            {% if current_user.photo_url %}
-              <img src="{{ current_user.photo_url }}" class="w-6 h-6 rounded-full" alt="" />
-            {% else %}
-              <div class="w-6 h-6 rounded-full bg-gradient-to-br from-accent to-accent2 flex items-center justify-center text-xs font-bold">
-                {{ current_user.initial }}
-              </div>
-            {% endif %}
-            <span class="hidden sm:inline text-sm">{{ current_user.display_name }}</span>
+          <button class="flex items-center gap-2 px-2 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition">
+            <div class="w-7 h-7 rounded-full bg-gradient-to-br from-accent to-accent2 flex items-center justify-center text-xs font-bold">
+              {{ current_user.initial }}
+            </div>
+            <span class="hidden lg:inline text-sm max-w-[100px] truncate">{{ current_user.display_name }}</span>
           </button>
-          <div class="absolute right-0 mt-2 w-48 rounded-xl bg-panel border border-white/10 shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition z-50">
-            <a href="{{ url_for('main.my_orders') }}" class="block px-4 py-2.5 hover:bg-white/5 rounded-t-xl text-sm">Заказҳо</a>
+          <div class="absolute right-0 mt-2 w-52 rounded-xl bg-panel border border-white/10 shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition z-50 py-1">
+            <a href="{{ url_for('profile.index') }}" class="block px-4 py-2.5 hover:bg-white/5 text-sm">👤 {{ t('nav.profile') }}</a>
+            <a href="{{ url_for('wallet.index') }}" class="block px-4 py-2.5 hover:bg-white/5 text-sm">💰 {{ t('nav.wallet') }}</a>
+            <a href="{{ url_for('profile.inventory') }}" class="block px-4 py-2.5 hover:bg-white/5 text-sm">🎁 {{ t('nav.inventory') }}</a>
+            <a href="{{ url_for('main.my_orders') }}" class="block px-4 py-2.5 hover:bg-white/5 text-sm">📦 {{ t('nav.orders') }}</a>
             {% if current_user.is_admin %}
-              <a href="{{ url_for('admin.dashboard') }}" class="block px-4 py-2.5 hover:bg-white/5 text-sm text-accent">Admin Panel</a>
+              <div class="border-t border-white/5 my-1"></div>
+              <a href="{{ url_for('admin.dashboard') }}" class="block px-4 py-2.5 hover:bg-white/5 text-sm text-accent">⚙️ {{ t('nav.admin') }}</a>
             {% endif %}
-            <a href="{{ url_for('auth.logout') }}" class="block px-4 py-2.5 hover:bg-white/5 rounded-b-xl text-sm text-red-400">Баромад</a>
+            <div class="border-t border-white/5 my-1"></div>
+            <a href="{{ url_for('auth.logout') }}" class="block px-4 py-2.5 hover:bg-white/5 text-sm text-red-400">↪ {{ t('nav.logout') }}</a>
           </div>
         </div>
       {% else %}
-        <a href="{{ url_for('auth.login') }}" class="hidden sm:inline px-4 py-2 rounded-lg hover:bg-white/5 text-sm transition">
-          Login
+        <a href="{{ url_for('auth.login') }}" class="hidden sm:inline px-3 py-1.5 rounded-lg hover:bg-white/5 text-sm transition">
+          {{ t('nav.login') }}
         </a>
-        <a href="{{ url_for('auth.register') }}" class="px-4 py-2 rounded-lg bg-accent hover:bg-accent/90 text-white text-sm font-medium transition shadow-lg shadow-accent/30">
-          Сабтнома
+        <a href="{{ url_for('auth.register') }}" class="px-3 py-1.5 rounded-lg bg-accent hover:bg-accent/90 text-white text-sm font-medium transition shadow-lg shadow-accent/30">
+          {{ t('nav.register') }}
         </a>
       {% endif %}
     </div>

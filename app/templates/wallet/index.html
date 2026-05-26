@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+{% block title %}{{ t('wallet.title') }} — {{ site_name }}{% endblock %}
+
+{% block content %}
+<div class="grid lg:grid-cols-3 gap-6 animate-slide-up">
+
+  <!-- Left: balances + convert -->
+  <div class="lg:col-span-1 space-y-4">
+    <!-- Total balance card -->
+    <div class="rounded-2xl bg-gradient-to-br from-accent to-accent2 p-6 text-white shadow-xl shadow-accent/20">
+      <div class="text-xs uppercase opacity-80">{{ t('wallet.total_balance') }}</div>
+      <div class="text-3xl font-extrabold mt-1 mb-3">
+        {{ "%.2f"|format(current_user.get_balance('TJS')) }} <span class="text-lg opacity-80">TJS</span>
+      </div>
+      <div class="grid grid-cols-2 gap-2 text-sm">
+        <div class="bg-white/15 rounded-lg px-3 py-2">
+          <div class="text-xs opacity-70">TON</div>
+          <div class="font-bold">{{ "%.4f"|format(current_user.get_balance('TON')) }}</div>
+        </div>
+        <div class="bg-white/15 rounded-lg px-3 py-2">
+          <div class="text-xs opacity-70">USD</div>
+          <div class="font-bold">${{ "%.2f"|format(current_user.get_balance('USD')) }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Convert -->
+    <div class="rounded-2xl bg-panel border border-white/10 p-5">
+      <h3 class="font-bold mb-3">🔄 {{ t('wallet.convert') }}</h3>
+      <form method="POST" action="{{ url_for('wallet.convert_action') }}" class="space-y-3">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+        <div>
+          <label class="block text-xs uppercase text-gray-500 mb-1">{{ t('wallet.from') }}</label>
+          <div class="flex gap-2">
+            <select name="from" id="from-cur" class="px-3 py-2 rounded-xl bg-bg border border-white/10 text-sm">
+              <option value="TJS">TJS</option>
+              <option value="TON">TON</option>
+              <option value="USD">USD</option>
+            </select>
+            <input type="number" name="amount" id="amount" step="0.0001" min="0.01" required
+                   class="flex-1 px-3 py-2 rounded-xl bg-bg border border-white/10 text-sm" placeholder="0.00" />
+          </div>
+        </div>
+
+        <div class="text-center text-gray-500 text-xs">↓</div>
+
+        <div>
+          <label class="block text-xs uppercase text-gray-500 mb-1">{{ t('wallet.to') }}</label>
+          <select name="to" id="to-cur" class="w-full px-3 py-2 rounded-xl bg-bg border border-white/10 text-sm">
+            <option value="TON">TON</option>
+            <option value="TJS">TJS</option>
+            <option value="USD">USD</option>
+          </select>
+        </div>
+
+        <div class="text-xs text-gray-400">
+          {{ t('wallet.you_get') }}: <span id="preview" class="font-bold text-accent">—</span>
+        </div>
+
+        <button type="submit" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-accent to-accent2 text-white font-semibold transition">
+          {{ t('wallet.convert') }}
+        </button>
+      </form>
+    </div>
+
+    <!-- Top-up info -->
+    <div class="rounded-2xl bg-amber-500/5 border border-amber-500/20 p-4 text-amber-200 text-xs">
+      💡 {{ t('wallet.topup_message') }}
+    </div>
+  </div>
+
+  <!-- Right: transactions -->
+  <div class="lg:col-span-2">
+    <h2 class="text-xl font-bold mb-4">{{ t('wallet.transactions') }}</h2>
+
+    {% if transactions %}
+    <div class="rounded-2xl bg-panel border border-white/10 overflow-hidden">
+      <table class="w-full text-sm">
+        <thead class="bg-white/5 text-xs uppercase text-gray-400">
+          <tr>
+            <th class="px-4 py-3 text-left">Сана</th>
+            <th class="px-4 py-3 text-left">Намуд</th>
+            <th class="px-4 py-3 text-left">Тавсиф</th>
+            <th class="px-4 py-3 text-right">Маблағ</th>
+            <th class="px-4 py-3 text-right">Balance</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-white/5">
+          {% for tx in transactions %}
+          <tr class="hover:bg-white/5">
+            <td class="px-4 py-3 text-xs text-gray-400 whitespace-nowrap">{{ tx.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+            <td class="px-4 py-3">
+              {% set kind_color = {'topup': 'emerald', 'purchase': 'red', 'refund': 'blue', 'convert_in': 'amber', 'convert_out': 'amber', 'adjust': 'gray'}.get(tx.kind, 'gray') %}
+              <span class="text-xs px-2 py-0.5 rounded bg-{{ kind_color }}-500/10 text-{{ kind_color }}-300 border border-{{ kind_color }}-500/30">
+                {{ tx.kind }}
+              </span>
+            </td>
+            <td class="px-4 py-3 text-xs">{{ tx.description or '—' }}</td>
+            <td class="px-4 py-3 text-right font-bold {% if tx.amount > 0 %}text-emerald-400{% else %}text-red-400{% endif %}">
+              {{ '+' if tx.amount > 0 }}{{ "%.4f"|format(tx.amount)|trim('0')|trim('.') if tx.currency == 'TON' else "%.2f"|format(tx.amount) }} {{ tx.currency }}
+            </td>
+            <td class="px-4 py-3 text-right text-xs text-gray-400">
+              {{ "%.4f"|format(tx.balance_after) if tx.currency == 'TON' else "%.2f"|format(tx.balance_after) }}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="text-center py-16 rounded-2xl bg-panel border border-white/5">
+      <div class="text-4xl mb-2 opacity-30">💰</div>
+      <p class="text-gray-400">{{ t('wallet.empty') }}</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+{% block scripts %}
+<script>
+(function () {
+  const fromEl = document.getElementById('from-cur');
+  const toEl = document.getElementById('to-cur');
+  const amtEl = document.getElementById('amount');
+  const previewEl = document.getElementById('preview');
+
+  let timer = null;
+  async function update() {
+    const from = fromEl.value;
+    const to = toEl.value;
+    const amt = parseFloat(amtEl.value || '0');
+    if (from === to || amt <= 0) {
+      previewEl.textContent = '—';
+      return;
+    }
+    try {
+      const r = await fetch(`/wallet/preview?from=${from}&to=${to}&amount=${amt}`);
+      const data = await r.json();
+      if (data.ok) {
+        previewEl.textContent = `${data.result.toFixed(to === 'TON' ? 4 : 2)} ${to}`;
+      }
+    } catch (e) {}
+  }
+  function debounce() {
+    if (timer) clearTimeout(timer);
+    timer = setTimeout(update, 300);
+  }
+  fromEl.addEventListener('change', debounce);
+  toEl.addEventListener('change', debounce);
+  amtEl.addEventListener('input', debounce);
+})();
+</script>
+{% endblock %}
+{% endblock %}

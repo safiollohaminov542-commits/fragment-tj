@@ -1,50 +1,40 @@
 {% extends 'base.html' %}
-{% block title %}Login — {{ site_name }}{% endblock %}
+{% block title %}{{ t('nav.login') }} — {{ site_name }}{% endblock %}
 
 {% block content %}
 <div class="max-w-md mx-auto mt-8 animate-slide-up">
   <div class="rounded-3xl bg-panel border border-white/10 p-8 backdrop-blur">
     <div class="text-center mb-8">
-      <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-accent to-accent2 flex items-center justify-center text-3xl font-bold shadow-lg shadow-accent/30">
-        F
-      </div>
-      <h1 class="text-2xl font-bold">Хуш омадед</h1>
-      <p class="text-gray-400 text-sm mt-2">Бо ҳисоби худ ворид шавед</p>
+      <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-accent to-accent2 flex items-center justify-center text-3xl font-bold shadow-lg shadow-accent/30">F</div>
+      <h1 class="text-2xl font-bold">{{ t('auth.login.title') }}</h1>
+      <p class="text-gray-400 text-sm mt-2">{{ t('auth.login.subtitle') }}</p>
     </div>
 
     <form method="POST" class="space-y-4">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
 
       <div>
-        <label class="block text-xs uppercase text-gray-500 mb-1.5 tracking-wider">Email</label>
-        <input type="email" name="email" required autofocus
-               value="{{ form_email or '' }}"
-               placeholder="[email protected]"
-               autocomplete="email"
+        <label class="block text-xs uppercase text-gray-500 mb-1.5 tracking-wider">{{ t('auth.email') }}</label>
+        <input type="email" name="email" required autofocus value="{{ form_email or '' }}"
+               placeholder="[email protected]" autocomplete="email"
                class="w-full px-4 py-3 rounded-xl bg-bg border border-white/10 focus:border-accent focus:outline-none transition" />
       </div>
 
       <div>
-        <label class="block text-xs uppercase text-gray-500 mb-1.5 tracking-wider">Password</label>
-        <input type="password" name="password" required
-               placeholder="••••••••"
-               autocomplete="current-password"
+        <label class="block text-xs uppercase text-gray-500 mb-1.5 tracking-wider">{{ t('auth.password') }}</label>
+        <input type="password" name="password" required placeholder="••••••••" autocomplete="current-password"
                class="w-full px-4 py-3 rounded-xl bg-bg border border-white/10 focus:border-accent focus:outline-none transition" />
       </div>
 
-      <button type="submit" class="w-full py-3 rounded-xl bg-gradient-to-r from-accent to-accent2 hover:opacity-90 text-white font-semibold shadow-lg shadow-accent/30 transition">
-        Login
+      <button type="submit" class="w-full py-3 rounded-xl bg-gradient-to-r from-accent to-accent2 text-white font-semibold shadow-lg shadow-accent/30">
+        {{ t('auth.button.login') }}
       </button>
     </form>
 
     <p class="text-center text-sm text-gray-400 mt-6">
-      Ҳоло ҳисоб надоред?
-      <a href="{{ url_for('auth.register') }}" class="text-accent hover:underline font-medium">Ҳисоб созед</a>
+      {{ t('auth.no_account') }}
+      <a href="{{ url_for('auth.register') }}" class="text-accent hover:underline font-medium">{{ t('auth.create_account') }}</a>
     </p>
-
-    <div class="mt-6 p-3 rounded-xl bg-blue-500/5 border border-blue-500/20 text-blue-300 text-xs leading-relaxed">
-      💡 Баъди login код-и 6-рақама ба email-и шумо фиристода мешавад барои тасдиқ.
-    </div>
   </div>
 </div>
 {% endblock %}

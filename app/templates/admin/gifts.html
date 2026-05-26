@@ -4,7 +4,7 @@
 {% block admin_content %}
 <div class="flex items-center justify-between mb-6">
   <h1 class="text-2xl font-bold">Gifts ({{ pagination.total }})</h1>
-  <a href="{{ url_for('admin.gift_new') }}" class="px-4 py-2 rounded-xl bg-accent hover:bg-accent/90 text-white text-sm font-medium shadow-lg shadow-accent/30 transition">
+  <a href="{{ url_for('admin.gift_new') }}" class="px-4 py-2 rounded-xl bg-gradient-to-r from-accent to-accent2 text-white text-sm font-medium shadow-lg shadow-accent/30">
     + Иловаи Gift
   </a>
 </div>
@@ -16,9 +16,11 @@
       <tr>
         <th class="px-4 py-3 text-left">Image</th>
         <th class="px-4 py-3 text-left">Title</th>
-        <th class="px-4 py-3 text-right">TON</th>
+        <th class="px-4 py-3 text-right">Base TON</th>
+        <th class="px-4 py-3 text-right">+%</th>
+        <th class="px-4 py-3 text-right">Final TON</th>
         <th class="px-4 py-3 text-right">TJS</th>
-        <th class="px-4 py-3 text-left">Status</th>
+        <th class="px-4 py-3 text-left">Статус</th>
         <th class="px-4 py-3"></th>
       </tr>
     </thead>
@@ -26,18 +28,22 @@
       {% for g in gifts %}
       <tr class="hover:bg-white/5">
         <td class="px-4 py-3">
-          {% if g.image_url %}
-            <img src="{{ g.image_url }}" class="w-10 h-10 rounded-lg object-cover" />
-          {% else %}
-            <div class="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center">🎁</div>
-          {% endif %}
+          <div class="w-10 h-10 rounded-lg overflow-hidden" {% if g.background_color %}style="background:{{ g.background_color }};"{% else %}style="background:#1f1f1f;"{% endif %}>
+            {% if g.image_url %}
+              <img src="{{ g.image_url }}" class="w-full h-full object-cover" />
+            {% else %}
+              <div class="w-full h-full flex items-center justify-center text-xl">🎁</div>
+            {% endif %}
+          </div>
         </td>
         <td class="px-4 py-3">
           <a href="{{ url_for('main.gift_detail', slug=g.slug) }}" target="_blank" class="font-medium hover:text-accent">{{ g.title }}</a>
           {% if g.collection %}<div class="text-xs text-gray-500">{{ g.collection }}</div>{% endif %}
         </td>
-        <td class="px-4 py-3 text-right text-accent font-bold">{{ g.ton_price }}</td>
-        <td class="px-4 py-3 text-right">{{ "%.0f"|format(g.get_tjs_price(ton_rate)) }}
+        <td class="px-4 py-3 text-right text-gray-300">{{ g.base_ton_price }}</td>
+        <td class="px-4 py-3 text-right text-accent">+{{ g.markup_percent }}%</td>
+        <td class="px-4 py-3 text-right font-bold text-accent">{{ g.final_ton_price }}</td>
+        <td class="px-4 py-3 text-right">{{ "%.0f"|format(g.get_price_in('TJS', ton_rate_dict)) }}
           {% if g.use_manual_price %}<span class="text-xs text-amber-400 ml-1">M</span>{% endif %}
         </td>
         <td class="px-4 py-3">
@@ -66,20 +72,17 @@
   {% else %}
   <div class="p-12 text-center text-gray-500">
     <div class="text-5xl mb-3 opacity-30">🎁</div>
-    Ҳоло gift нест. <a href="{{ url_for('admin.gift_new') }}" class="text-accent hover:underline">Аввалинашро илова кунед.</a>
+    Ҳоло gift нест.
+    <a href="{{ url_for('admin.gift_new') }}" class="text-accent hover:underline">Аввалинашро илова кунед.</a>
   </div>
   {% endif %}
 </div>
 
 {% if pagination.pages > 1 %}
 <div class="flex justify-center gap-2 mt-6">
-  {% if pagination.has_prev %}
-    <a href="?page={{ pagination.prev_num }}" class="px-3 py-1.5 rounded-lg bg-panel border border-white/10 text-sm">←</a>
-  {% endif %}
+  {% if pagination.has_prev %}<a href="?page={{ pagination.prev_num }}" class="px-3 py-1.5 rounded-lg bg-panel border border-white/10 text-sm">←</a>{% endif %}
   <span class="px-3 py-1.5 rounded-lg bg-accent/10 text-accent text-sm">{{ pagination.page }} / {{ pagination.pages }}</span>
-  {% if pagination.has_next %}
-    <a href="?page={{ pagination.next_num }}" class="px-3 py-1.5 rounded-lg bg-panel border border-white/10 text-sm">→</a>
-  {% endif %}
+  {% if pagination.has_next %}<a href="?page={{ pagination.next_num }}" class="px-3 py-1.5 rounded-lg bg-panel border border-white/10 text-sm">→</a>{% endif %}
 </div>
 {% endif %}
 {% endblock %}

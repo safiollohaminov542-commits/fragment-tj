@@ -5,97 +5,305 @@
 <a href="{{ url_for('admin.gifts') }}" class="text-sm text-gray-400 hover:text-white">← Ба рӯйхат</a>
 <h1 class="text-2xl font-bold my-4">{% if gift %}Тағйир: {{ gift.title }}{% else %}Иловаи Gift нав{% endif %}</h1>
 
-<form method="POST" enctype="multipart/form-data" class="grid md:grid-cols-2 gap-6">
+{% if not gift %}
+<!-- Quick Import аз Fragment -->
+<div class="rounded-2xl bg-gradient-to-br from-accent/10 to-accent2/5 border border-accent/30 p-5 mb-6">
+  <div class="flex items-center gap-2 mb-3">
+    <svg class="w-5 h-5 text-accent" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0L0 6.6L12 24L24 6.6L12 0Z"/></svg>
+    <h2 class="font-semibold">Import аз Fragment.com</h2>
+    <span class="ml-auto text-xs text-gray-400">Default markup: <strong class="text-accent">+{{ default_markup }}%</strong></span>
+  </div>
+  <p class="text-xs text-gray-400 mb-3">URL-и Fragment-ро гузоред — система автомат title, image, animation, нархҳо, attributes-ро мегирад.</p>
+
+  <div class="flex flex-col sm:flex-row gap-2">
+    <input id="import-url" type="url" placeholder="https://fragment.com/gift/..."
+           class="flex-1 px-4 py-2.5 rounded-xl bg-bg border border-white/10 focus:border-accent focus:outline-none text-sm" />
+    <button type="button" id="btn-preview" class="px-5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-sm font-medium transition">
+      Preview
+    </button>
+    <form method="POST" action="{{ url_for('admin.gift_import') }}" id="import-form" class="contents">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+      <input type="hidden" name="fragment_url" id="import-url-hidden" />
+      <button type="submit" class="px-5 py-2.5 rounded-xl bg-accent hover:bg-accent/90 text-white text-sm font-medium shadow-lg shadow-accent/30">
+        Import
+      </button>
+    </form>
+  </div>
+
+  <div id="preview-area" class="hidden mt-4 p-4 rounded-xl bg-bg/50 border border-white/10">
+    <div class="flex gap-4">
+      <div id="preview-image-wrap" class="w-24 h-24 rounded-xl overflow-hidden bg-white/5">
+        <img id="preview-image" src="" class="w-full h-full object-cover" />
+      </div>
+      <div class="flex-1 min-w-0">
+        <div id="preview-title" class="font-semibold"></div>
+        <div id="preview-collection" class="text-xs text-gray-400"></div>
+        <div id="preview-price" class="text-accent font-bold mt-1"></div>
+        <div id="preview-attrs" class="text-xs text-gray-400 mt-1"></div>
+        <div id="preview-issued" class="text-xs text-gray-500 mt-1"></div>
+      </div>
+    </div>
+  </div>
+  <div id="preview-error" class="hidden mt-3 text-sm text-red-400"></div>
+</div>
+{% endif %}
+
+<form method="POST" enctype="multipart/form-data" class="space-y-6">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
 
-  <div class="space-y-4">
-    <div>
-      <label class="block text-xs uppercase text-gray-500 mb-1.5">Title *</label>
-      <input type="text" name="title" required value="{{ gift.title if gift else '' }}"
-             class="w-full px-4 py-2.5 rounded-xl bg-panel border border-white/10 focus:border-accent focus:outline-none" />
-    </div>
-
-    <div>
-      <label class="block text-xs uppercase text-gray-500 mb-1.5">Description</label>
-      <textarea name="description" rows="4"
-                class="w-full px-4 py-2.5 rounded-xl bg-panel border border-white/10 focus:border-accent focus:outline-none">{{ gift.description if gift else '' }}</textarea>
-    </div>
-
-    <div class="grid grid-cols-2 gap-3">
+  <!-- Basics -->
+  <div class="rounded-2xl bg-panel border border-white/10 p-5 space-y-4">
+    <h2 class="font-semibold">Маълумоти асосӣ</h2>
+    <div class="grid md:grid-cols-2 gap-3">
       <div>
-        <label class="block text-xs uppercase text-gray-500 mb-1.5">Collection</label>
+        <label class="block text-xs uppercase text-gray-500 mb-1">Title *</label>
+        <input type="text" name="title" required value="{{ gift.title if gift else '' }}"
+               class="w-full px-4 py-2.5 rounded-xl bg-bg border border-white/10" />
+      </div>
+      <div>
+        <label class="block text-xs uppercase text-gray-500 mb-1">Collection</label>
         <input type="text" name="collection" value="{{ gift.collection if gift else '' }}"
-               class="w-full px-4 py-2.5 rounded-xl bg-panel border border-white/10" />
+               class="w-full px-4 py-2.5 rounded-xl bg-bg border border-white/10" />
       </div>
       <div>
-        <label class="block text-xs uppercase text-gray-500 mb-1.5">Rarity</label>
-        <input type="text" name="rarity" value="{{ gift.rarity if gift else '' }}"
-               class="w-full px-4 py-2.5 rounded-xl bg-panel border border-white/10" />
+        <label class="block text-xs uppercase text-gray-500 mb-1">Gift Number</label>
+        <input type="number" name="gift_number" value="{{ gift.gift_number if gift else '' }}"
+               class="w-full px-4 py-2.5 rounded-xl bg-bg border border-white/10" />
+      </div>
+      <div>
+        <label class="block text-xs uppercase text-gray-500 mb-1">Background color (hex)</label>
+        <input type="text" name="background_color" value="{{ gift.background_color if gift else '' }}"
+               placeholder="#cd9b3a"
+               class="w-full px-4 py-2.5 rounded-xl bg-bg border border-white/10" />
       </div>
     </div>
-
     <div>
-      <label class="block text-xs uppercase text-gray-500 mb-1.5">Fragment URL</label>
+      <label class="block text-xs uppercase text-gray-500 mb-1">Description</label>
+      <textarea name="description" rows="3"
+                class="w-full px-4 py-2.5 rounded-xl bg-bg border border-white/10">{{ gift.description if gift else '' }}</textarea>
+    </div>
+    <div>
+      <label class="block text-xs uppercase text-gray-500 mb-1">Fragment URL</label>
       <input type="url" name="fragment_url" value="{{ gift.fragment_url if gift else '' }}"
-             placeholder="https://fragment.com/gift/..."
-             class="w-full px-4 py-2.5 rounded-xl bg-panel border border-white/10" />
+             class="w-full px-4 py-2.5 rounded-xl bg-bg border border-white/10" />
     </div>
   </div>
 
-  <div class="space-y-4">
+  <!-- Media -->
+  <div class="rounded-2xl bg-panel border border-white/10 p-5 space-y-4">
+    <h2 class="font-semibold">Media</h2>
     <div>
-      <label class="block text-xs uppercase text-gray-500 mb-1.5">Image upload</label>
+      <label class="block text-xs uppercase text-gray-500 mb-1">Image upload</label>
       <input type="file" name="image" accept="image/*"
              class="w-full text-sm text-gray-400 file:mr-3 file:px-4 file:py-2 file:rounded-lg file:border-0 file:bg-accent/10 file:text-accent" />
-      {% if gift and gift.image_url %}
-        <img src="{{ gift.image_url }}" class="mt-2 w-32 h-32 rounded-xl object-cover" />
-      {% endif %}
+      {% if gift and gift.image_url %}<img src="{{ gift.image_url }}" class="mt-2 w-32 h-32 rounded-xl object-cover" />{% endif %}
     </div>
     <div>
-      <label class="block text-xs uppercase text-gray-500 mb-1.5">Or Image URL</label>
+      <label class="block text-xs uppercase text-gray-500 mb-1">Image URL</label>
       <input type="url" name="image_url" value="{{ gift.image_url if gift else '' }}"
-             class="w-full px-4 py-2.5 rounded-xl bg-panel border border-white/10" />
+             class="w-full px-4 py-2.5 rounded-xl bg-bg border border-white/10" />
+    </div>
+    <div>
+      <label class="block text-xs uppercase text-gray-500 mb-1">Animation URL (Lottie .json)</label>
+      <input type="url" name="animation_url" value="{{ gift.animation_url if gift else '' }}"
+             class="w-full px-4 py-2.5 rounded-xl bg-bg border border-white/10" />
+      {% if gift and gift.animation_url %}
+        <div class="mt-2 w-32 h-32 rounded-xl overflow-hidden bg-bg" {% if gift.background_color %}style="background:{{ gift.background_color }};"{% endif %}>
+          <lottie-player src="{{ gift.animation_url }}" background="transparent" speed="1"
+                         style="width:100%;height:100%;" loop autoplay></lottie-player>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Pricing -->
+  <div class="rounded-2xl bg-panel border border-white/10 p-5 space-y-4">
+    <h2 class="font-semibold">Нархгузорӣ</h2>
+    <div class="grid md:grid-cols-3 gap-3">
+      <div>
+        <label class="block text-xs uppercase text-gray-500 mb-1">Base TON Price *</label>
+        <input type="number" step="0.0001" min="0" name="base_ton_price" required
+               value="{{ gift.base_ton_price if gift else '' }}"
+               class="w-full px-4 py-2.5 rounded-xl bg-bg border border-white/10" />
+        <p class="text-xs text-gray-500 mt-1">Нархи аз Fragment</p>
+      </div>
+      <div>
+        <label class="block text-xs uppercase text-gray-500 mb-1">Markup %</label>
+        <input type="number" step="0.1" name="markup_percent"
+               value="{{ gift.markup_percent if gift else (default_markup if default_markup else 0) }}"
+               class="w-full px-4 py-2.5 rounded-xl bg-bg border border-white/10" />
+        <p class="text-xs text-gray-500 mt-1">+50% = 1.5×</p>
+      </div>
+      <div>
+        <label class="block text-xs uppercase text-gray-500 mb-1">Manual TJS price (override)</label>
+        <input type="number" step="0.01" name="manual_tjs_price"
+               value="{{ gift.manual_tjs_price if gift and gift.manual_tjs_price else '' }}"
+               placeholder="Auto"
+               class="w-full px-4 py-2.5 rounded-xl bg-bg border border-white/10" />
+      </div>
+    </div>
+    <label class="flex items-center gap-2 cursor-pointer">
+      <input type="checkbox" name="use_manual_price" {% if gift and gift.use_manual_price %}checked{% endif %} class="w-4 h-4 accent-accent" />
+      <span class="text-sm">Истифодаи Manual TJS Price (markup-ро ignore мекунад)</span>
+    </label>
+  </div>
+
+  <!-- Attributes -->
+  <div class="rounded-2xl bg-panel border border-white/10 p-5 space-y-4">
+    <h2 class="font-semibold">Attributes</h2>
+
+    <div class="grid md:grid-cols-3 gap-3">
+      <div class="grid grid-cols-2 gap-2">
+        <div>
+          <label class="block text-xs uppercase text-gray-500 mb-1">Model</label>
+          <input type="text" name="model_name" value="{{ gift.model_name if gift else '' }}"
+                 class="w-full px-3 py-2 rounded-lg bg-bg border border-white/10 text-sm" />
+        </div>
+        <div>
+          <label class="block text-xs uppercase text-gray-500 mb-1">%</label>
+          <input type="number" step="0.1" name="model_rarity" value="{{ gift.model_rarity if gift else '' }}"
+                 class="w-full px-3 py-2 rounded-lg bg-bg border border-white/10 text-sm" />
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <div>
+          <label class="block text-xs uppercase text-gray-500 mb-1">Backdrop</label>
+          <input type="text" name="backdrop_name" value="{{ gift.backdrop_name if gift else '' }}"
+                 class="w-full px-3 py-2 rounded-lg bg-bg border border-white/10 text-sm" />
+        </div>
+        <div>
+          <label class="block text-xs uppercase text-gray-500 mb-1">%</label>
+          <input type="number" step="0.1" name="backdrop_rarity" value="{{ gift.backdrop_rarity if gift else '' }}"
+                 class="w-full px-3 py-2 rounded-lg bg-bg border border-white/10 text-sm" />
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <div>
+          <label class="block text-xs uppercase text-gray-500 mb-1">Symbol</label>
+          <input type="text" name="symbol_name" value="{{ gift.symbol_name if gift else '' }}"
+                 class="w-full px-3 py-2 rounded-lg bg-bg border border-white/10 text-sm" />
+        </div>
+        <div>
+          <label class="block text-xs uppercase text-gray-500 mb-1">%</label>
+          <input type="number" step="0.1" name="symbol_rarity" value="{{ gift.symbol_rarity if gift else '' }}"
+                 class="w-full px-3 py-2 rounded-lg bg-bg border border-white/10 text-sm" />
+        </div>
+      </div>
     </div>
 
     <div class="grid grid-cols-2 gap-3">
       <div>
-        <label class="block text-xs uppercase text-gray-500 mb-1.5">TON Price *</label>
-        <input type="number" step="0.01" min="0" name="ton_price" required value="{{ gift.ton_price if gift else '' }}"
-               class="w-full px-4 py-2.5 rounded-xl bg-panel border border-white/10" />
+        <label class="block text-xs uppercase text-gray-500 mb-1">Issued #</label>
+        <input type="number" name="issued_number" value="{{ gift.issued_number if gift else '' }}"
+               class="w-full px-4 py-2.5 rounded-xl bg-bg border border-white/10" />
       </div>
       <div>
-        <label class="block text-xs uppercase text-gray-500 mb-1.5">Manual TJS Price</label>
-        <input type="number" step="0.01" min="0" name="manual_tjs_price"
-               value="{{ gift.manual_tjs_price if gift and gift.manual_tjs_price else '' }}"
-               placeholder="Auto"
-               class="w-full px-4 py-2.5 rounded-xl bg-panel border border-white/10" />
+        <label class="block text-xs uppercase text-gray-500 mb-1">Issued Total</label>
+        <input type="number" name="issued_total" value="{{ gift.issued_total if gift else '' }}"
+               class="w-full px-4 py-2.5 rounded-xl bg-bg border border-white/10" />
       </div>
     </div>
 
-    <div>
-      <label class="block text-xs uppercase text-gray-500 mb-1.5">Quantity</label>
-      <input type="number" min="0" name="quantity" value="{{ gift.quantity if gift else 1 }}"
-             class="w-full px-4 py-2.5 rounded-xl bg-panel border border-white/10" />
+    <div class="grid grid-cols-2 gap-3">
+      <div>
+        <label class="block text-xs uppercase text-gray-500 mb-1">Fragment Owner</label>
+        <input type="text" name="fragment_owner" value="{{ gift.fragment_owner if gift else '' }}"
+               class="w-full px-4 py-2.5 rounded-xl bg-bg border border-white/10 font-mono text-xs" />
+      </div>
+      <div>
+        <label class="block text-xs uppercase text-gray-500 mb-1">Status</label>
+        <select name="fragment_status" class="w-full px-4 py-2.5 rounded-xl bg-bg border border-white/10">
+          <option value="">—</option>
+          <option value="for_sale" {% if gift and gift.fragment_status == 'for_sale' %}selected{% endif %}>For sale</option>
+          <option value="auction" {% if gift and gift.fragment_status == 'auction' %}selected{% endif %}>Auction</option>
+        </select>
+      </div>
     </div>
+  </div>
 
+  <!-- Marketplace -->
+  <div class="rounded-2xl bg-panel border border-white/10 p-5 space-y-4">
+    <h2 class="font-semibold">Marketplace</h2>
+    <div>
+      <label class="block text-xs uppercase text-gray-500 mb-1">Quantity</label>
+      <input type="number" min="0" name="quantity" value="{{ gift.quantity if gift else 1 }}"
+             class="w-full md:w-48 px-4 py-2.5 rounded-xl bg-bg border border-white/10" />
+    </div>
     <div class="space-y-2">
-      <label class="flex items-center gap-2 cursor-pointer">
-        <input type="checkbox" name="use_manual_price" {% if gift and gift.use_manual_price %}checked{% endif %} class="w-4 h-4 accent-accent" />
-        <span class="text-sm">Истифодаи Manual TJS Price</span>
-      </label>
       <label class="flex items-center gap-2 cursor-pointer">
         <input type="checkbox" name="is_available" {% if not gift or gift.is_available %}checked{% endif %} class="w-4 h-4 accent-accent" />
         <span class="text-sm">Дастрас</span>
       </label>
       <label class="flex items-center gap-2 cursor-pointer">
         <input type="checkbox" name="is_featured" {% if gift and gift.is_featured %}checked{% endif %} class="w-4 h-4 accent-accent" />
-        <span class="text-sm">Featured (тавсияшуда)</span>
+        <span class="text-sm">★ Featured</span>
       </label>
     </div>
-
-    <button type="submit" class="w-full py-3 rounded-xl bg-accent hover:bg-accent/90 text-white font-semibold shadow-lg shadow-accent/30 transition">
-      {% if gift %}Захира{% else %}Илова{% endif %}
-    </button>
   </div>
+
+  <button type="submit" class="px-6 py-3 rounded-xl bg-gradient-to-r from-accent to-accent2 text-white font-semibold shadow-lg shadow-accent/30">
+    {% if gift %}Захира{% else %}Илова{% endif %}
+  </button>
 </form>
+
+{% if not gift %}
+<script>
+(function () {
+  const urlInput = document.getElementById('import-url');
+  const hiddenInput = document.getElementById('import-url-hidden');
+  const btnPreview = document.getElementById('btn-preview');
+  const previewArea = document.getElementById('preview-area');
+  const previewError = document.getElementById('preview-error');
+
+  function syncHidden() {
+    hiddenInput.value = urlInput.value.trim();
+  }
+  urlInput.addEventListener('input', syncHidden);
+  syncHidden();
+
+  btnPreview.addEventListener('click', async () => {
+    const url = urlInput.value.trim();
+    previewArea.classList.add('hidden');
+    previewError.classList.add('hidden');
+    if (!url) {
+      previewError.textContent = 'URL гузоред.';
+      previewError.classList.remove('hidden');
+      return;
+    }
+    btnPreview.disabled = true;
+    btnPreview.textContent = 'Loading...';
+    try {
+      const r = await fetch("{{ url_for('admin.gift_import_preview') }}", {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fragment_url: url }),
+      });
+      const data = await r.json();
+      if (!data.ok) throw new Error(data.error || 'Хато');
+      const d = data.data;
+      document.getElementById('preview-image').src = d.image_url || '';
+      document.getElementById('preview-title').textContent = d.title || '—';
+      document.getElementById('preview-collection').textContent = d.collection || '';
+      document.getElementById('preview-price').textContent = d.ton_price ? `${d.ton_price} TON` : 'Нарх ёфт нашуд';
+      const attrs = [
+        d.model && d.model.name ? `Model: ${d.model.name}${d.model.rarity ? ' ' + d.model.rarity + '%' : ''}` : null,
+        d.backdrop && d.backdrop.name ? `Backdrop: ${d.backdrop.name}${d.backdrop.rarity ? ' ' + d.backdrop.rarity + '%' : ''}` : null,
+        d.symbol && d.symbol.name ? `Symbol: ${d.symbol.name}${d.symbol.rarity ? ' ' + d.symbol.rarity + '%' : ''}` : null,
+      ].filter(Boolean).join(' · ');
+      document.getElementById('preview-attrs').textContent = attrs;
+      if (d.issued_number && d.issued_total) {
+        document.getElementById('preview-issued').textContent = `Issued ${d.issued_number} of ${d.issued_total}`;
+      }
+      previewArea.classList.remove('hidden');
+    } catch (e) {
+      previewError.textContent = e.message;
+      previewError.classList.remove('hidden');
+    } finally {
+      btnPreview.disabled = false;
+      btnPreview.textContent = 'Preview';
+    }
+  });
+})();
+</script>
+{% endif %}
 {% endblock %}

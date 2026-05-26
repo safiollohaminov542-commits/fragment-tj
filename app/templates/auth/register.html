@@ -1,63 +1,111 @@
 {% extends 'base.html' %}
-{% block title %}Сабтнома — {{ site_name }}{% endblock %}
+{% block title %}{{ t('nav.register') }} — {{ site_name }}{% endblock %}
 
 {% block content %}
 <div class="max-w-md mx-auto mt-8 animate-slide-up">
   <div class="rounded-3xl bg-panel border border-white/10 p-8 backdrop-blur">
     <div class="text-center mb-8">
-      <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-accent to-accent2 flex items-center justify-center text-3xl font-bold shadow-lg shadow-accent/30">
-        F
-      </div>
-      <h1 class="text-2xl font-bold">Ҳисоб эҷод кунед</h1>
-      <p class="text-gray-400 text-sm mt-2">Бо email сабт шавед — зуд ва осон</p>
+      <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-accent to-accent2 flex items-center justify-center text-3xl font-bold shadow-lg shadow-accent/30">F</div>
+      <h1 class="text-2xl font-bold">{{ t('auth.register.title') }}</h1>
+      <p class="text-gray-400 text-sm mt-2">{{ t('auth.register.subtitle') }}</p>
     </div>
 
-    <form method="POST" class="space-y-4">
+    <form method="POST" class="space-y-4" id="register-form">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
 
       <div>
-        <label class="block text-xs uppercase text-gray-500 mb-1.5 tracking-wider">Ном (ихтиёрӣ)</label>
-        <input type="text" name="name" maxlength="120"
-               value="{{ form_name or '' }}"
-               placeholder="Алӣ Раҳимов"
-               autocomplete="name"
+        <label class="block text-xs uppercase text-gray-500 mb-1.5 tracking-wider">{{ t('auth.name') }} ({{ t('common.optional') }})</label>
+        <input type="text" name="name" maxlength="120" value="{{ form_name or '' }}" autocomplete="name"
                class="w-full px-4 py-3 rounded-xl bg-bg border border-white/10 focus:border-accent focus:outline-none transition" />
       </div>
 
       <div>
-        <label class="block text-xs uppercase text-gray-500 mb-1.5 tracking-wider">Email *</label>
-        <input type="email" name="email" required autofocus
-               value="{{ form_email or '' }}"
-               placeholder="[email protected]"
-               autocomplete="email"
+        <label class="block text-xs uppercase text-gray-500 mb-1.5 tracking-wider">{{ t('auth.email') }} *</label>
+        <input type="email" name="email" required autofocus value="{{ form_email or '' }}"
+               placeholder="[email protected]" autocomplete="email"
                class="w-full px-4 py-3 rounded-xl bg-bg border border-white/10 focus:border-accent focus:outline-none transition" />
       </div>
 
       <div>
-        <label class="block text-xs uppercase text-gray-500 mb-1.5 tracking-wider">Password *</label>
-        <input type="password" name="password" required minlength="6"
-               placeholder="ҳадди ақал 6 ҳарф"
-               autocomplete="new-password"
-               class="w-full px-4 py-3 rounded-xl bg-bg border border-white/10 focus:border-accent focus:outline-none transition" />
+        <label class="block text-xs uppercase text-gray-500 mb-1.5 tracking-wider">{{ t('auth.password') }} *</label>
+        <div class="relative">
+          <input type="password" name="password" id="pw1" required minlength="6"
+                 placeholder="min 6 chars" autocomplete="new-password"
+                 class="w-full px-4 py-3 pr-12 rounded-xl bg-bg border border-white/10 focus:border-accent focus:outline-none transition" />
+          <button type="button" id="toggle-pw1" tabindex="-1"
+                  class="absolute inset-y-0 right-0 px-3 flex items-center text-gray-400 hover:text-accent transition text-sm">👁</button>
+        </div>
       </div>
 
       <div>
-        <label class="block text-xs uppercase text-gray-500 mb-1.5 tracking-wider">Тасдиқи Password *</label>
-        <input type="password" name="password_confirm" required minlength="6"
-               placeholder="••••••••"
-               autocomplete="new-password"
-               class="w-full px-4 py-3 rounded-xl bg-bg border border-white/10 focus:border-accent focus:outline-none transition" />
+        <label class="block text-xs uppercase text-gray-500 mb-1.5 tracking-wider">{{ t('auth.password_confirm') }} *</label>
+        <div class="relative">
+          <input type="password" name="password_confirm" id="pw2" required minlength="6"
+                 autocomplete="new-password"
+                 class="w-full px-4 py-3 pr-12 rounded-xl bg-bg border border-white/10 focus:border-accent focus:outline-none transition" />
+          <button type="button" id="toggle-pw2" tabindex="-1"
+                  class="absolute inset-y-0 right-0 px-3 flex items-center text-gray-400 hover:text-accent transition text-sm">👁</button>
+        </div>
+        <div id="match-indicator" class="mt-1.5 text-xs hidden"></div>
       </div>
 
-      <button type="submit" class="w-full py-3 rounded-xl bg-gradient-to-r from-accent to-accent2 hover:opacity-90 text-white font-semibold shadow-lg shadow-accent/30 transition">
-        Ҳисоб эҷод кунед
+      <button type="submit" id="submit-btn" class="w-full py-3 rounded-xl bg-gradient-to-r from-accent to-accent2 text-white font-semibold shadow-lg shadow-accent/30">
+        {{ t('auth.button.register') }}
       </button>
     </form>
 
     <p class="text-center text-sm text-gray-400 mt-6">
-      Аллакай ҳисоб доред?
-      <a href="{{ url_for('auth.login') }}" class="text-accent hover:underline font-medium">Login</a>
+      {{ t('auth.have_account') }}
+      <a href="{{ url_for('auth.login') }}" class="text-accent hover:underline font-medium">{{ t('nav.login') }}</a>
     </p>
   </div>
 </div>
+
+{% block scripts %}
+<script>
+(function () {
+  function setupToggle(btnId, inputId) {
+    const btn = document.getElementById(btnId);
+    const input = document.getElementById(inputId);
+    if (!btn || !input) return;
+    btn.addEventListener('click', () => {
+      const isHidden = input.type === 'password';
+      input.type = isHidden ? 'text' : 'password';
+      btn.textContent = isHidden ? '🙈' : '👁';
+    });
+  }
+  setupToggle('toggle-pw1', 'pw1');
+  setupToggle('toggle-pw2', 'pw2');
+
+  const pw1 = document.getElementById('pw1');
+  const pw2 = document.getElementById('pw2');
+  const indicator = document.getElementById('match-indicator');
+  const matchTxt = "{{ t('auth.passwords_match') }}";
+  const differTxt = "{{ t('auth.passwords_differ') }}";
+
+  function updateMatch() {
+    if (!pw2.value) {
+      indicator.classList.add('hidden');
+      pw2.classList.remove('border-emerald-500/50', 'border-red-500/50');
+      pw2.classList.add('border-white/10');
+      return;
+    }
+    indicator.classList.remove('hidden');
+    if (pw1.value === pw2.value) {
+      indicator.textContent = '✓ ' + matchTxt;
+      indicator.className = 'mt-1.5 text-xs text-emerald-400';
+      pw2.classList.remove('border-white/10', 'border-red-500/50');
+      pw2.classList.add('border-emerald-500/50');
+    } else {
+      indicator.textContent = '✗ ' + differTxt;
+      indicator.className = 'mt-1.5 text-xs text-red-400';
+      pw2.classList.remove('border-white/10', 'border-emerald-500/50');
+      pw2.classList.add('border-red-500/50');
+    }
+  }
+  pw1.addEventListener('input', updateMatch);
+  pw2.addEventListener('input', updateMatch);
+})();
+</script>
+{% endblock %}
 {% endblock %}

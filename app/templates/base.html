@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="tg" class="dark">
+<html lang="{{ current_lang or 'tg' }}" class="dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>{% block title %}Fragment TJ{% endblock %}</title>
+  <title>{% block title %}{{ site_name }}{% endblock %}</title>
 
-  <!-- TailwindCSS via CDN (production: build бо PostCSS) -->
+  <!-- TailwindCSS via CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -13,11 +13,15 @@
       theme: {
         extend: {
           colors: {
-            bg: "#0b0f17",
-            panel: "#111827",
-            ring: "#1f2937",
-            accent: "#0098EA", // TON blue
-            accent2: "#22d3ee",
+            // Orange theme бо акси шумо
+            bg: "#0a0a0a",
+            panel: "#161616",
+            panel2: "#1f1f1f",
+            ring: "#2a2a2a",
+            accent: "#ff7a18",        // Bright orange
+            accent2: "#ffa849",
+            success: "#10b981",
+            danger: "#ef4444",
           },
           fontFamily: {
             sans: ["Inter", "system-ui", "sans-serif"],
@@ -26,6 +30,7 @@
             "fade-in": "fadeIn 0.4s ease-out",
             "slide-up": "slideUp 0.5s ease-out",
             float: "float 3s ease-in-out infinite",
+            shimmer: "shimmer 2s linear infinite",
           },
           keyframes: {
             fadeIn: {
@@ -40,6 +45,10 @@
               "0%, 100%": { transform: "translateY(0)" },
               "50%": { transform: "translateY(-10px)" },
             },
+            shimmer: {
+              "0%": { backgroundPosition: "-1000px 0" },
+              "100%": { backgroundPosition: "1000px 0" },
+            },
           },
         },
       },
@@ -48,31 +57,34 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
     rel="stylesheet"
   />
+
+  <!-- Lottie player для TGS animation -->
+  <script src="https://unpkg.com/@lottiefiles/[email protected]/dist/lottie-player.js"></script>
 
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
   {% block head %}{% endblock %}
 </head>
 <body class="bg-bg text-gray-100 font-sans min-h-screen flex flex-col antialiased">
-  <!-- Decorative background blobs -->
+  <!-- Decorative orange blobs -->
   <div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
-    <div class="absolute top-0 -left-40 w-96 h-96 bg-accent/20 rounded-full blur-3xl"></div>
-    <div class="absolute bottom-0 -right-40 w-96 h-96 bg-accent2/10 rounded-full blur-3xl"></div>
+    <div class="absolute -top-32 -left-40 w-96 h-96 bg-accent/20 rounded-full blur-3xl"></div>
+    <div class="absolute -bottom-32 -right-40 w-96 h-96 bg-accent2/15 rounded-full blur-3xl"></div>
   </div>
 
   {% include 'partials/navbar.html' %}
 
-  <main class="flex-1 container mx-auto px-4 py-8 animate-fade-in">
+  <main class="flex-1 container mx-auto px-4 py-6 animate-fade-in">
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         <div class="mb-6 space-y-2">
           {% for category, msg in messages %}
-            <div class="p-4 rounded-xl border backdrop-blur
+            <div class="p-4 rounded-xl border backdrop-blur flash-message
                         {% if category == 'error' %}bg-red-500/10 border-red-500/30 text-red-300
                         {% elif category == 'success' %}bg-emerald-500/10 border-emerald-500/30 text-emerald-300
-                        {% else %}bg-blue-500/10 border-blue-500/30 text-blue-300{% endif %}">
+                        {% else %}bg-orange-500/10 border-orange-500/30 text-orange-300{% endif %}">
               {{ msg }}
             </div>
           {% endfor %}

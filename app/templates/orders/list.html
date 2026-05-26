@@ -1,14 +1,14 @@
 {% extends 'base.html' %}
-{% block title %}Заказҳои ман — Fragment TJ{% endblock %}
+{% block title %}{{ t('nav.orders') }} — {{ site_name }}{% endblock %}
 
 {% block content %}
-<h1 class="text-3xl font-bold mb-6">Заказҳои ман</h1>
+<h1 class="text-3xl font-bold mb-6">{{ t('nav.orders') }}</h1>
 
 {% if orders %}
 <div class="space-y-3">
   {% for order in orders %}
   <div class="rounded-2xl bg-panel border border-white/10 p-5 flex flex-wrap items-center gap-4">
-    <div class="w-16 h-16 rounded-xl bg-white/5 overflow-hidden flex-shrink-0">
+    <div class="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0" {% if order.gift.background_color %}style="background:{{ order.gift.background_color }};"{% endif %}>
       {% if order.gift.image_url %}
         <img src="{{ order.gift.image_url }}" class="w-full h-full object-cover" />
       {% else %}
@@ -20,11 +20,10 @@
       <div class="text-xs text-gray-500">Order #{{ order.id }} · {{ order.created_at.strftime('%Y-%m-%d %H:%M') }}</div>
     </div>
     <div class="text-right">
-      <div class="font-bold text-accent">{{ order.ton_price }} TON</div>
-      <div class="text-xs text-gray-400">{{ "%.2f"|format(order.tjs_price) }} TJS</div>
+      <div class="font-bold text-accent">{{ "%.2f"|format(order.paid_amount or 0) }} {{ order.paid_currency or 'TJS' }}</div>
     </div>
     <div>
-      {% set color = {'pending': 'amber', 'paid': 'blue', 'completed': 'emerald', 'cancelled': 'red'}.get(order.status, 'gray') %}
+      {% set color = {'pending': 'amber', 'paid': 'blue', 'completed': 'emerald', 'cancelled': 'red', 'refunded': 'purple'}.get(order.status, 'gray') %}
       <span class="px-3 py-1 rounded-lg bg-{{ color }}-500/10 border border-{{ color }}-500/30 text-{{ color }}-300 text-xs uppercase">{{ order.status }}</span>
     </div>
   </div>
@@ -33,8 +32,8 @@
 {% else %}
 <div class="text-center py-20 rounded-2xl bg-panel border border-white/5">
   <div class="text-5xl mb-3 opacity-50">📦</div>
-  <p class="text-gray-400">Шумо ҳоло заказ надоред.</p>
-  <a href="{{ url_for('main.gifts_list') }}" class="inline-block mt-4 px-5 py-2 rounded-xl bg-accent hover:bg-accent/90 text-white text-sm transition">Дидани Gifts</a>
+  <p class="text-gray-400">Заказ нест.</p>
+  <a href="{{ url_for('main.gifts_list') }}" class="inline-block mt-4 px-5 py-2 rounded-xl bg-accent text-white text-sm transition">{{ t('gifts.see_all') }}</a>
 </div>
 {% endif %}
 {% endblock %}

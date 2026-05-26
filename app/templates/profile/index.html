@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% block title %}{{ t('profile.title') }} — {{ site_name }}{% endblock %}
+
+{% block content %}
+<div class="grid lg:grid-cols-3 gap-6 animate-slide-up">
+
+  <!-- Left: profile card + balances -->
+  <div class="lg:col-span-1 space-y-4">
+    <!-- Profile card -->
+    <div class="rounded-2xl bg-gradient-to-br from-accent to-accent2 p-6 text-white shadow-xl shadow-accent/20">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-14 h-14 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-2xl font-bold">
+          {{ current_user.initial }}
+        </div>
+        <div>
+          <div class="font-bold text-lg">{{ current_user.display_name }}</div>
+          <div class="text-xs opacity-80">{{ current_user.email }}</div>
+        </div>
+      </div>
+      {% if current_user.telegram_username %}
+        <div class="text-sm bg-white/10 rounded-lg px-3 py-2">@{{ current_user.telegram_username }}</div>
+      {% endif %}
+      <a href="{{ url_for('profile.edit') }}"
+         class="block mt-3 text-center py-2 rounded-lg bg-black/20 hover:bg-black/30 text-sm transition">
+        {{ t('profile.edit') }}
+      </a>
+    </div>
+
+    <!-- Balances -->
+    <div class="rounded-2xl bg-panel border border-white/10 p-5">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="font-bold">💰 {{ t('wallet.balance') }}</h3>
+        <a href="{{ url_for('wallet.index') }}" class="text-xs text-accent hover:underline">→</a>
+      </div>
+      <div class="space-y-2">
+        <div class="flex justify-between items-center px-3 py-2 rounded-lg bg-bg/50">
+          <span class="text-sm text-gray-400">TJS</span>
+          <span class="font-bold">{{ "%.2f"|format(current_user.get_balance('TJS')) }}</span>
+        </div>
+        <div class="flex justify-between items-center px-3 py-2 rounded-lg bg-bg/50">
+          <span class="text-sm text-gray-400">TON</span>
+          <span class="font-bold text-accent">{{ "%.4f"|format(current_user.get_balance('TON')) }}</span>
+        </div>
+        <div class="flex justify-between items-center px-3 py-2 rounded-lg bg-bg/50">
+          <span class="text-sm text-gray-400">USD</span>
+          <span class="font-bold">${{ "%.2f"|format(current_user.get_balance('USD')) }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: inventory + orders -->
+  <div class="lg:col-span-2 space-y-6">
+    <!-- Inventory preview -->
+    <div>
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-bold">🎁 {{ t('inventory.title') }}</h2>
+        <a href="{{ url_for('profile.inventory') }}" class="text-sm text-accent hover:underline">{{ t('gifts.see_all') }} →</a>
+      </div>
+      {% if inventory_items %}
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {% for item in inventory_items %}
+          {% set gift = item.gift %}
+          <div class="rounded-xl bg-panel border border-white/10 overflow-hidden">
+            <div class="aspect-square relative" {% if gift.background_color %}style="background:{{ gift.background_color }};"{% endif %}>
+              {% if gift.animation_url %}
+                <lottie-player src="{{ gift.animation_url }}" background="transparent" speed="1"
+                               style="width:100%;height:100%;" loop autoplay></lottie-player>
+              {% elif gift.image_url %}
+                <img src="{{ gift.image_url }}" class="w-full h-full object-cover" />
+              {% else %}
+                <div class="w-full h-full flex items-center justify-center text-4xl opacity-30">🎁</div>
+              {% endif %}
+              <div class="absolute bottom-1.5 right-1.5">
+                {% if item.status == 'owned' %}
+                  <span class="px-2 py-0.5 rounded bg-emerald-500/20 backdrop-blur text-emerald-300 text-[10px]">●</span>
+                {% elif item.status == 'transfer_pending' %}
+                  <span class="px-2 py-0.5 rounded bg-amber-500/20 backdrop-blur text-amber-300 text-[10px]">⏳</span>
+                {% else %}
+                  <span class="px-2 py-0.5 rounded bg-gray-500/20 backdrop-blur text-gray-300 text-[10px]">✓</span>
+                {% endif %}
+              </div>
+            </div>
+            <div class="p-2">
+              <div class="text-xs font-medium truncate">{{ gift.title }}</div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="text-center py-12 rounded-2xl bg-panel border border-white/5">
+        <div class="text-4xl mb-2 opacity-30">🎁</div>
+        <p class="text-sm text-gray-400">{{ t('inventory.empty') }}</p>
+        <a href="{{ url_for('main.gifts_list') }}" class="inline-block mt-3 px-4 py-1.5 rounded-lg bg-accent text-white text-sm">{{ t('gifts.see_all') }}</a>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Recent orders -->
+    {% if recent_orders %}
+    <div>
+      <h2 class="text-xl font-bold mb-4">📦 {{ t('nav.orders') }}</h2>
+      <div class="rounded-2xl bg-panel border border-white/10 overflow-hidden">
+        <table class="w-full text-sm">
+          <thead class="bg-white/5 text-xs uppercase text-gray-400">
+            <tr>
+              <th class="px-4 py-3 text-left">#</th>
+              <th class="px-4 py-3 text-left">Gift</th>
+              <th class="px-4 py-3 text-right">Маблағ</th>
+              <th class="px-4 py-3 text-left">Статус</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-white/5">
+            {% for o in recent_orders %}
+            <tr class="hover:bg-white/5">
+              <td class="px-4 py-3 font-mono text-gray-400">#{{ o.id }}</td>
+              <td class="px-4 py-3">{{ o.gift.title }}</td>
+              <td class="px-4 py-3 text-right font-bold">{{ "%.2f"|format(o.paid_amount or 0) }} {{ o.paid_currency or 'TJS' }}</td>
+              <td class="px-4 py-3 uppercase text-xs text-gray-400">{{ o.status }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
