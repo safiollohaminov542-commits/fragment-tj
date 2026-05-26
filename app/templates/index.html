@@ -1,49 +1,47 @@
 {% extends 'base.html' %}
-{% block title %}Fragment TJ — Telegram Gifts дар Тоҷикистон{% endblock %}
+{% block title %}{{ site_name }} — {{ t('site.tagline') }}{% endblock %}
 
 {% block content %}
 <!-- Hero -->
-<section class="relative py-16 md:py-24 text-center animate-slide-up">
+<section class="relative py-12 md:py-20 text-center animate-slide-up">
   <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-accent/10 border border-accent/20 text-accent text-xs font-medium mb-6">
     <span class="w-1.5 h-1.5 rounded-full bg-accent animate-pulse"></span>
     Telegram Gifts Marketplace
   </div>
   <h1 class="text-4xl md:text-6xl font-extrabold tracking-tight mb-4">
     Telegram <span class="bg-gradient-to-r from-accent to-accent2 bg-clip-text text-transparent">Gifts</span><br />
-    дар Тоҷикистон
+    <span class="text-gray-300 text-3xl md:text-5xl">{{ t('site.tagline') }}</span>
   </h1>
   <p class="text-gray-400 text-lg max-w-2xl mx-auto mb-8">
-    Харид ва фурӯши Telegram gifts бо TON ва сомонӣ — зуд, осон, бехатар.
+    Харид ва фурӯши Telegram gifts бо TON, сомонӣ ва доллар.
   </p>
   <div class="flex flex-wrap items-center justify-center gap-3">
-    <a href="{{ url_for('main.gifts_list') }}" class="px-6 py-3 rounded-xl bg-accent hover:bg-accent/90 text-white font-semibold shadow-lg shadow-accent/30 transition">
-      Дидани Gifts
+    <a href="{{ url_for('main.gifts_list') }}" class="px-6 py-3 rounded-xl bg-gradient-to-r from-accent to-accent2 hover:opacity-90 text-white font-semibold shadow-lg shadow-accent/30 transition">
+      {{ t('gifts.see_all') }}
     </a>
     {% if not current_user.is_authenticated %}
-    <a href="{{ url_for('auth.login') }}" class="px-6 py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 font-semibold transition">
-      Login
+    <a href="{{ url_for('auth.register') }}" class="px-6 py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 font-semibold transition">
+      {{ t('nav.register') }}
     </a>
     {% endif %}
   </div>
 
-  <!-- Live rate card -->
-  <div class="mt-12 inline-flex items-center gap-4 px-6 py-3 rounded-2xl bg-panel border border-white/10 backdrop-blur">
-    <div class="w-10 h-10 rounded-xl bg-accent/20 flex items-center justify-center">
-      <svg class="w-5 h-5 text-accent" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0L0 6.6L12 24L24 6.6L12 0Z"/></svg>
+  <!-- Live rates strip -->
+  <div class="mt-10 inline-flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-panel border border-white/10">
+    <div class="flex items-center gap-2">
+      <svg class="w-4 h-4 text-accent" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0L0 6.6L12 24L24 6.6L12 0Z"/></svg>
+      <span class="text-sm">1 TON = <span class="font-bold text-accent" data-ton-tjs>{{ "%.2f"|format(rates.ton_tjs) }}</span> TJS</span>
     </div>
-    <div class="text-left">
-      <div class="text-xs text-gray-500">Курси феълӣ</div>
-      <div class="font-bold">1 TON = <span class="text-accent">{{ "%.2f"|format(ton_rate) }}</span> TJS</div>
-    </div>
+    <span class="text-gray-600">•</span>
+    <span class="text-sm text-gray-400">$<span data-ton-usd>{{ "%.2f"|format(rates.ton_usd) }}</span></span>
   </div>
 </section>
 
-<!-- Featured -->
 {% if featured %}
-<section class="mb-16">
-  <div class="flex items-center justify-between mb-6">
-    <h2 class="text-2xl font-bold">⭐ Тавсияшуда</h2>
-    <a href="{{ url_for('main.gifts_list') }}" class="text-sm text-accent hover:underline">Ҳамаро дидан →</a>
+<section class="mb-12">
+  <div class="flex items-center justify-between mb-5">
+    <h2 class="text-2xl font-bold">⭐ {{ t('gifts.featured') }}</h2>
+    <a href="{{ url_for('main.gifts_list') }}" class="text-sm text-accent hover:underline">{{ t('gifts.see_all') }} →</a>
   </div>
   <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
     {% for gift in featured %}
@@ -53,11 +51,10 @@
 </section>
 {% endif %}
 
-<!-- Latest -->
-<section class="mb-16">
-  <div class="flex items-center justify-between mb-6">
-    <h2 class="text-2xl font-bold">Нав иловашуда</h2>
-    <a href="{{ url_for('main.gifts_list') }}" class="text-sm text-accent hover:underline">Ҳамаро дидан →</a>
+<section class="mb-12">
+  <div class="flex items-center justify-between mb-5">
+    <h2 class="text-2xl font-bold">{{ t('gifts.latest') }}</h2>
+    <a href="{{ url_for('main.gifts_list') }}" class="text-sm text-accent hover:underline">{{ t('gifts.see_all') }} →</a>
   </div>
   {% if latest %}
   <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
@@ -68,7 +65,7 @@
   {% else %}
   <div class="text-center py-16 rounded-2xl bg-panel border border-white/5">
     <div class="text-5xl mb-3 opacity-50">🎁</div>
-    <p class="text-gray-400">Ҳоло gift нест. Admin метавонад дар <code class="text-accent">/admin</code> илова кунад.</p>
+    <p class="text-gray-400">{{ t('gifts.empty') }}</p>
   </div>
   {% endif %}
 </section>

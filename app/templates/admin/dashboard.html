@@ -4,34 +4,79 @@
 {% block admin_content %}
 <h1 class="text-2xl font-bold mb-6">Dashboard</h1>
 
-<div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
-  {% for label, value, icon, color in [
-    ('Total Gifts', stats.total_gifts, '🎁', 'accent'),
-    ('Available', stats.available_gifts, '✅', 'emerald'),
-    ('Users', stats.total_users, '👥', 'purple'),
-    ('Orders', stats.total_orders, '📦', 'blue'),
-    ('Pending', stats.pending_orders, '⏳', 'amber')
+<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-8">
+  {% for label, value, icon in [
+    ('Gifts', stats.total_gifts, '🎁'),
+    ('Available', stats.available_gifts, '✅'),
+    ('Users', stats.total_users, '👥'),
+    ('Orders', stats.total_orders, '📦'),
+    ('Pending TR', stats.pending_transfers, '⏳'),
+    ('Inventory', stats.total_inventory, '📊')
   ] %}
-  <div class="rounded-2xl bg-panel border border-white/10 p-5">
-    <div class="text-2xl mb-2">{{ icon }}</div>
-    <div class="text-xs text-gray-500 uppercase tracking-wider">{{ label }}</div>
-    <div class="text-2xl font-bold mt-1">{{ value }}</div>
+  <div class="rounded-2xl bg-panel border border-white/10 p-4">
+    <div class="text-2xl mb-1">{{ icon }}</div>
+    <div class="text-xs text-gray-500 uppercase">{{ label }}</div>
+    <div class="text-2xl font-bold mt-0.5">{{ value }}</div>
   </div>
   {% endfor %}
 </div>
 
-<div class="rounded-2xl bg-panel border border-white/10 p-5 mb-6">
-  <div class="flex items-center gap-3">
-    <svg class="w-8 h-8 text-accent" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0L0 6.6L12 24L24 6.6L12 0Z"/></svg>
+<!-- Rates -->
+<div class="rounded-2xl bg-gradient-to-br from-accent/15 to-accent2/5 border border-accent/30 p-5 mb-6">
+  <div class="flex items-center gap-3 mb-3">
+    <svg class="w-7 h-7 text-accent" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0L0 6.6L12 24L24 6.6L12 0Z"/></svg>
     <div>
-      <div class="text-xs text-gray-500">Курси феълӣ</div>
-      <div class="font-bold">1 TON = <span class="text-accent">{{ "%.2f"|format(ton_rate) }}</span> TJS</div>
+      <div class="text-xs text-gray-400">Курсҳои феълӣ</div>
+      <div class="font-bold">Auto-rates {% if rates.manual_ton_tjs or rates.manual_ton_usd or rates.manual_usd_tjs %}<span class="text-amber-400 text-xs">+ manual override</span>{% endif %}</div>
     </div>
     <a href="{{ url_for('admin.settings') }}" class="ml-auto text-sm text-accent hover:underline">Танзимот →</a>
   </div>
+  <div class="grid grid-cols-3 gap-3 text-sm">
+    <div class="bg-bg/30 rounded-lg px-3 py-2">
+      <div class="text-xs text-gray-400">1 TON</div>
+      <div class="font-bold">{{ "%.2f"|format(rates.ton_tjs) }} TJS</div>
+    </div>
+    <div class="bg-bg/30 rounded-lg px-3 py-2">
+      <div class="text-xs text-gray-400">1 TON</div>
+      <div class="font-bold">${{ "%.2f"|format(rates.ton_usd) }}</div>
+    </div>
+    <div class="bg-bg/30 rounded-lg px-3 py-2">
+      <div class="text-xs text-gray-400">1 USD</div>
+      <div class="font-bold">{{ "%.2f"|format(rates.usd_tjs) }} TJS</div>
+    </div>
+  </div>
 </div>
 
-<h2 class="text-lg font-semibold mb-3">Заказҳои нав</h2>
+{% if pending_transfers %}
+<h2 class="text-lg font-semibold mb-3">⏳ Заявкаҳои Transfer ({{ pending_transfers|length }})</h2>
+<div class="rounded-2xl bg-panel border border-white/10 overflow-hidden mb-6">
+  <table class="w-full text-sm">
+    <thead class="bg-white/5 text-xs uppercase text-gray-400">
+      <tr>
+        <th class="px-4 py-3 text-left">#</th>
+        <th class="px-4 py-3 text-left">User</th>
+        <th class="px-4 py-3 text-left">Gift</th>
+        <th class="px-4 py-3 text-left">→ Telegram</th>
+        <th class="px-4 py-3 text-left">Сана</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-white/5">
+      {% for tr in pending_transfers %}
+      <tr class="hover:bg-white/5">
+        <td class="px-4 py-3 font-mono">#{{ tr.id }}</td>
+        <td class="px-4 py-3">{{ tr.user.email }}</td>
+        <td class="px-4 py-3">{{ tr.inventory_item.gift.title if tr.inventory_item else '—' }}</td>
+        <td class="px-4 py-3 text-accent">@{{ tr.telegram_username }}</td>
+        <td class="px-4 py-3 text-xs text-gray-400">{{ tr.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+<a href="{{ url_for('admin.transfers') }}" class="text-sm text-accent hover:underline">Ҳамаро дидан →</a>
+{% endif %}
+
+<h2 class="text-lg font-semibold mb-3 mt-6">Заказҳои нав</h2>
 <div class="rounded-2xl bg-panel border border-white/10 overflow-hidden">
   {% if recent_orders %}
   <table class="w-full text-sm">
@@ -41,25 +86,25 @@
         <th class="px-4 py-3 text-left">User</th>
         <th class="px-4 py-3 text-left">Gift</th>
         <th class="px-4 py-3 text-right">Price</th>
-        <th class="px-4 py-3 text-left">Status</th>
-        <th class="px-4 py-3 text-left">Date</th>
+        <th class="px-4 py-3 text-left">Статус</th>
+        <th class="px-4 py-3 text-left">Сана</th>
       </tr>
     </thead>
     <tbody class="divide-y divide-white/5">
       {% for o in recent_orders %}
       <tr class="hover:bg-white/5">
         <td class="px-4 py-3 font-mono">#{{ o.id }}</td>
-        <td class="px-4 py-3">{{ o.user.display_name }}</td>
+        <td class="px-4 py-3">{{ o.user.email }}</td>
         <td class="px-4 py-3">{{ o.gift.title }}</td>
-        <td class="px-4 py-3 text-right">{{ o.ton_price }} TON</td>
+        <td class="px-4 py-3 text-right">{{ "%.2f"|format(o.paid_amount or 0) }} {{ o.paid_currency or 'TJS' }}</td>
         <td class="px-4 py-3 uppercase text-xs">{{ o.status }}</td>
-        <td class="px-4 py-3 text-gray-400 text-xs">{{ o.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+        <td class="px-4 py-3 text-xs text-gray-400">{{ o.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
   {% else %}
-  <div class="p-8 text-center text-gray-500">Ҳоло заказ нест.</div>
+  <div class="p-8 text-center text-gray-500">Заказ нест.</div>
   {% endif %}
 </div>
 {% endblock %}

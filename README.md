@@ -1,210 +1,122 @@
-# Fragment TJ
+# Fragment TJ — Marketplace v2
 
-Marketplace барои Telegram Gifts дар Тоҷикистон. Зеҳнӣ ва осон — фақат email лозим аст барои регистратсия.
+Маркетплейси Telegram Gifts бо wallet, Fragment auto-import, ва Telegram transfer system.
 
 ## ✨ Хусусиятҳо
 
-- 📧 **Email-only authentication** — фақат email + 6-digit code тавассути Gmail SMTP
-- 🎁 **Gift catalog** бо search, filter, pagination
-- 💰 **TON → TJS converter** аз CoinGecko API + manual override
-- 👨‍💼 **Admin panel** — gift management, orders, users, settings
-- 🌑 **Dark theme** бо TailwindCSS, glass effect, animations
-- 📦 **Order system** (pending → paid → completed)
-- 🛡️ Rate-limiting барои code resend, expiration, attempt counter
-- 🔒 Password hashing (Werkzeug PBKDF2)
-- ✅ CSRF protection
+- 📧 **Email-only auth** — register/login + 6-digit code (Gmail SMTP)
+- 💰 **Multi-currency wallet** — TJS / TON / USD бо real-time conversion
+- 🎁 **Fragment auto-import** — URL мегузоред, парсер метаdata, animation, нархҳо мегирад
+- 🎬 **Lottie animations** — TGS файлҳоро автомат extract ва намоиш медиҳад
+- 📈 **Markup %** — admin per-gift % илова мекунад (mas: 3 TON +50% = 4.5 TON)
+- 📨 **Telegram transfer** — user заявка медиҳад → admin manually мефиристад
+- 🌐 **i18n** — Тоҷикӣ + Русский
+- 🌑 **Dark theme** — orange accent (Tailwind CDN)
+- 👨‍💼 **Admin panel** — gifts, wallet topup, transfers, settings, users
 
-## 🛠 Stack
+## 🚀 Кор андохтан
 
-- **Backend**: Flask 3, SQLAlchemy, Flask-Login, Flask-Mail, Flask-Migrate
-- **Frontend**: Jinja2 + TailwindCSS (CDN) + vanilla JS
-- **Database**: SQLite (dev) / PostgreSQL (prod)
-- **Email**: Gmail SMTP бо App Password
-
-## 📂 Сохтори проект
-
-```
-fragment-tj/
-├── app/
-│   ├── __init__.py          # App factory
-│   ├── models/
-│   │   ├── user.py          # User бо email + password
-│   │   ├── verification.py  # 6-digit codes
-│   │   ├── gift.py
-│   │   ├── order.py
-│   │   └── settings.py
-│   ├── routes/              # main, auth, admin, api
-│   ├── services/
-│   │   ├── mail.py          # Flask-Mail integration
-│   │   └── ton_price.py     # CoinGecko
-│   ├── templates/
-│   │   ├── auth/            # login, register, verify
-│   │   ├── emails/          # verification_code.html
-│   │   ├── admin/
-│   │   └── ...
-│   └── static/
-├── config.py
-├── run.py
-├── requirements.txt
-└── .env.example
-```
-
-## 🚀 Кор андохтан (Quick Start)
-
-### 1. Clone ва virtual environment
+### 1. Install
 
 ```bash
 git clone https://github.com/safiollohaminov542-commits/fragment-tj.git
 cd fragment-tj
+git checkout feat/marketplace-v2
 python3 -m venv venv
-source venv/bin/activate   # Windows: venv\Scripts\activate
+source venv/bin/activate     # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### 2. Gmail App Password ҳосил кунед
+### 2. Playwright (барои Fragment auto-import)
 
-Барои фиристодани email тавассути Gmail SMTP, App Password лозим:
+```bash
+playwright install chromium
+```
 
-1. **2-Step Verification фаъол кунед** дар [myaccount.google.com/security](https://myaccount.google.com/security)
-2. Ба [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords) равед
-3. **App name**: `Fragment TJ` → **Create**
-4. 16-character password copy кунед (масалан `lwte iydu jnbh exsr`) — фосиларо нест кунед
+⚠️ Агар Playwright install кор накард, парсер автомат ба `requests + BeautifulSoup` fallback мекунад.
 
-### 3. `.env` созед
+### 3. Setup .env
 
 ```bash
 cp .env.example .env
 nano .env
 ```
 
-Минимум қимматҳои зеринро гузоред:
-
+Минимум:
 ```ini
-SECRET_KEY=ҳосил-кунед-бо-secrets.token_hex(32)
+SECRET_KEY=ҳосил кунед бо python -c "import secrets; print(secrets.token_hex(32))"
 [email protected]
-MAIL_PASSWORD=lwteiydujnbhexsr   # бе фосила!
+MAIL_PASSWORD=your-16-char-app-password
 [email protected]
-[email protected]   # ҳамин email-и шумо ҳамчун admin
+[email protected]
 ```
 
-> 💡 SECRET_KEY-и random ҳосил кардан:
-> ```bash
-> python -c "import secrets; print(secrets.token_hex(32))"
-> ```
-
-### 4. Запуск
+### 4. Run
 
 ```bash
+rm -f fragment_tj.db   # агар database-и кӯҳна бошад
 python run.py
 ```
 
-Сайт дар http://localhost:5000 кушода мешавад.
+http://localhost:5000
 
-### 5. Аввалин login ҳамчун admin
+## 🎯 Аввалин қадамҳо
 
-1. Ба http://localhost:5000/auth/register равед
-2. Email-и худатонро (ҳамон ки дар `ADMIN_EMAILS` гузоштаед) гузоред
-3. Email-ро санҷед — code-и 6-рақама аз Gmail хоҳед гирифт
-4. Code-ро гузоред → автомат admin мешавед
-5. Ба `/admin` равед
+1. **Регистратся**: http://localhost:5000/auth/register
+2. Email-и шумо дар `ADMIN_EMAILS` бошад → автомат admin мешавед
+3. **Settings**: http://localhost:5000/admin/settings — курсҳои API ё manual
+4. **Import gift**: http://localhost:5000/admin/gifts/new → URL-и Fragment гузоред → "Import"
+5. **Topup user balance**: http://localhost:5000/admin/users → user → top-up
+6. User мехарад → inventory → "Transfer to Telegram" → admin "Approve" → "Sent"
 
-## 🔐 Auth Flow
+## 🏗 Architecture
 
 ```
-Register:
-  email + password → 6-digit code → email → verify → ✓ login
-
-Login:
-  email + password → 6-digit code → email → verify → ✓ login
-
-Resend:
-  cooldown 60s, max 5 attempts per code, 10min lifetime
+fragment-tj/
+├── app/
+│   ├── models/
+│   │   ├── user.py             # email auth + 3 wallet balances
+│   │   ├── gift.py             # base_price + markup + attributes
+│   │   ├── inventory.py        # user-и харидорӣ кардаи gifts
+│   │   ├── transfer_request.py # заявка ба Telegram
+│   │   ├── balance_transaction.py
+│   │   ├── order.py
+│   │   ├── verification.py
+│   │   └── settings.py
+│   ├── routes/
+│   │   ├── main.py
+│   │   ├── auth.py             # register/login/verify
+│   │   ├── admin.py            # gifts/users/wallet/transfers
+│   │   ├── wallet.py           # convert
+│   │   ├── profile.py          # inventory + edit
+│   │   ├── transfer.py         # request to Telegram
+│   │   ├── language.py         # tg/ru switcher
+│   │   └── api.py              # JSON
+│   ├── services/
+│   │   ├── currency.py         # TON/TJS/USD rates + cache
+│   │   ├── wallet.py           # credit/debit/convert
+│   │   ├── fragment_parser.py  # Playwright + BeautifulSoup
+│   │   ├── lottie.py           # TGS download + decompress
+│   │   ├── mail.py
+│   │   └── i18n.py             # tg/ru translations
+│   ├── templates/
+│   └── static/
+├── config.py
+└── run.py
 ```
 
-## 🎯 Admin Setup
+## 🔧 Курсҳо
 
-Ду роҳ admin шудан:
+Аз CoinGecko: TON→USD, USDT→TJS. Дар admin/settings:
+- 🔄 Auto (default) — аз API
+- ✋ Manual — admin курси худро мегузорад
+- 🔄 Reset → ба API бар мегардад
 
-**Роҳи 1**: Email-ро дар `.env` → `ADMIN_EMAILS` гузоред — автомат promotion
-```ini
-[email protected]
-```
+## 🎨 Themes
 
-**Роҳи 2**: Дар admin panel дастӣ promote кунед — `/admin/users` → "↑ admin"
-
-## 📧 Email Troubleshooting
-
-### Email намерасад / Spam папкаашро тоза кунед
-- Spam папкаро санҷед — Gmail баъзан ба он ҷой мегузорад
-- Аввалин маротиба эҳтимоли spam зиёд аст. Sender-ро "Not Spam" хабар кунед
-
-### `SMTPAuthenticationError`
-- App Password-и нодуруст. Аз нав ҳосил кунед
-- Фосиларо нест кунед: `lwte iydu jnbh exsr` → `lwteiydujnbhexsr`
-
-### `[Errno 111] Connection refused`
-- Firewall port 465-ро block мекунад
-- Альтернатива: TLS port 587-ро санҷед:
-  ```ini
-  MAIL_PORT=587
-  MAIL_USE_TLS=True
-  MAIL_USE_SSL=False
-  ```
-
-### Email фиристода намешавад дар development
-Барои тестинг бе SMTP:
-```ini
-MAIL_SUPPRESS_SEND=True
-```
-Code-ҳо дар log нишон дода мешаванд.
-
-## 🌐 Production Deployment
-
-### Gunicorn + Nginx
-
-```bash
-gunicorn -w 4 -b 0.0.0.0:8000 'run:app'
-```
-
-```nginx
-server {
-    listen 80;
-    server_name your-domain.tj;
-
-    location /static/ {
-        alias /var/www/fragment-tj/app/static/;
-    }
-
-    location / {
-        proxy_pass http://127.0.0.1:8000;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-}
-```
-
-### PostgreSQL
-
-```ini
-DATABASE_URL=postgresql://user:password@localhost:5432/fragment_tj
-```
-
-```bash
-flask db init
-flask db migrate -m "init"
-flask db upgrade
-```
-
-## 🔮 TODO (хусусиятҳои оянда)
-
-- [ ] Forgot password flow
-- [ ] User profile editing
-- [ ] Telegram Mini App integration
-- [ ] Real TON payment integration
-- [ ] Multi-language (тоҷикӣ / русӣ / англисӣ)
-- [ ] Auction system
+- **Dark + orange** (#ff7a18) — асоси UI
+- **Glass cards** — backdrop-blur + gradient
+- **Lottie animations** — autoplay loop дар gift cards
 
 ## License
 

@@ -1,20 +1,23 @@
 {% extends 'base.html' %}
-{% block title %}{{ gift.title }} — Fragment TJ{% endblock %}
+{% block title %}{{ gift.title }} — {{ site_name }}{% endblock %}
 
 {% block content %}
-<a href="{{ url_for('main.gifts_list') }}" class="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white mb-6">
-  ← Ба рӯйхат
+<a href="{{ url_for('main.gifts_list') }}" class="inline-flex items-center gap-1 text-sm text-gray-400 hover:text-white mb-4">
+  ← {{ t('common.back') }}
 </a>
 
-<div class="grid md:grid-cols-2 gap-8 animate-slide-up">
-  <!-- Image -->
-  <div class="rounded-3xl bg-panel border border-white/10 overflow-hidden aspect-square relative">
-    {% if gift.image_url %}
+<div class="grid md:grid-cols-2 gap-6 animate-slide-up">
+  <!-- Animation/Image -->
+  <div class="rounded-3xl border border-white/10 overflow-hidden aspect-square relative"
+       {% if gift.background_color %}style="background: {{ gift.background_color }};"{% else %}style="background: #161616;"{% endif %}>
+    {% if gift.animation_url %}
+      <lottie-player src="{{ gift.animation_url }}" background="transparent" speed="1"
+                     style="width:100%;height:100%;" loop autoplay></lottie-player>
+    {% elif gift.image_url %}
       <img src="{{ gift.image_url }}" alt="{{ gift.title }}" class="w-full h-full object-cover" />
     {% else %}
       <div class="w-full h-full flex items-center justify-center text-9xl opacity-20">🎁</div>
     {% endif %}
-    <div class="absolute inset-0 bg-gradient-to-tr from-accent/10 via-transparent to-transparent pointer-events-none"></div>
   </div>
 
   <!-- Info -->
@@ -22,67 +25,135 @@
     {% if gift.collection %}
       <div class="text-sm text-accent mb-2">{{ gift.collection }}</div>
     {% endif %}
-    <h1 class="text-4xl font-extrabold mb-3">{{ gift.title }}</h1>
+    <h1 class="text-3xl md:text-4xl font-extrabold mb-3">{{ gift.title }}</h1>
 
-    <div class="flex flex-wrap gap-2 mb-6">
-      {% if gift.rarity %}
-        <span class="px-3 py-1 rounded-lg bg-purple-500/10 border border-purple-500/30 text-purple-300 text-xs">{{ gift.rarity }}</span>
+    <div class="flex flex-wrap gap-2 mb-5">
+      {% if gift.fragment_status == 'for_sale' %}
+        <span class="px-3 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs">For sale</span>
+      {% elif gift.fragment_status == 'auction' %}
+        <span class="px-3 py-1 rounded-lg bg-orange-500/10 border border-orange-500/30 text-orange-300 text-xs">Auction</span>
       {% endif %}
       {% if gift.is_available %}
-        <span class="px-3 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs">Дастрас</span>
+        <span class="px-3 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs">{{ t('gifts.available') }}</span>
       {% else %}
-        <span class="px-3 py-1 rounded-lg bg-red-500/10 border border-red-500/30 text-red-300 text-xs">Нест</span>
-      {% endif %}
-      {% if gift.use_manual_price %}
-        <span class="px-3 py-1 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs">Manual price</span>
+        <span class="px-3 py-1 rounded-lg bg-red-500/10 border border-red-500/30 text-red-300 text-xs">{{ t('gifts.sold_out') }}</span>
       {% endif %}
     </div>
 
     <!-- Price card -->
-    <div class="rounded-2xl bg-panel border border-white/10 p-6 mb-6">
-      <div class="flex items-baseline gap-3 mb-2">
-        <svg class="w-7 h-7 text-accent" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0L0 6.6L12 24L24 6.6L12 0Z"/></svg>
-        <span class="text-4xl font-extrabold text-accent">{{ gift.ton_price }}</span>
-        <span class="text-xl text-gray-400">TON</span>
+    <div class="rounded-2xl bg-panel border border-white/10 p-5 mb-5">
+      <div class="flex items-baseline gap-2 mb-1">
+        <svg class="w-6 h-6 text-accent" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0L0 6.6L12 24L24 6.6L12 0Z"/></svg>
+        <span class="text-3xl font-extrabold text-accent">{{ gift.final_ton_price }}</span>
+        <span class="text-lg text-gray-400">TON</span>
       </div>
-      <div class="text-2xl font-semibold">≈ {{ "%.2f"|format(gift.get_tjs_price(ton_rate)) }} TJS</div>
-      <div class="text-xs text-gray-500 mt-1">Курси феълӣ: 1 TON = {{ "%.2f"|format(ton_rate) }} TJS</div>
+      <div class="grid grid-cols-2 gap-3 mt-3 text-sm">
+        <div class="flex justify-between bg-bg/50 rounded-lg px-3 py-2">
+          <span class="text-gray-400">TJS</span>
+          <span class="font-bold">{{ "%.2f"|format(gift.get_price_in('TJS', ton_rate_dict)) }}</span>
+        </div>
+        <div class="flex justify-between bg-bg/50 rounded-lg px-3 py-2">
+          <span class="text-gray-400">USD</span>
+          <span class="font-bold">${{ "%.2f"|format(gift.get_price_in('USD', ton_rate_dict)) }}</span>
+        </div>
+      </div>
+      {% if gift.markup_percent and gift.markup_percent > 0 and not gift.use_manual_price %}
+        <div class="text-xs text-gray-500 mt-2">
+          Base: {{ gift.base_ton_price }} TON + {{ gift.markup_percent }}% = {{ gift.final_ton_price }} TON
+        </div>
+      {% endif %}
     </div>
 
+    <!-- Attributes -->
+    {% if gift.model_name or gift.backdrop_name or gift.symbol_name %}
+    <div class="grid grid-cols-3 gap-2 mb-5">
+      {% if gift.model_name %}
+      <div class="rounded-xl bg-panel border border-white/10 p-3">
+        <div class="text-[10px] uppercase text-gray-500 mb-1">{{ t('gifts.model') }}</div>
+        <div class="font-semibold text-sm truncate">{{ gift.model_name }}</div>
+        {% if gift.model_rarity %}<div class="text-xs text-accent">{{ gift.model_rarity }}%</div>{% endif %}
+      </div>
+      {% endif %}
+      {% if gift.backdrop_name %}
+      <div class="rounded-xl bg-panel border border-white/10 p-3">
+        <div class="text-[10px] uppercase text-gray-500 mb-1">{{ t('gifts.backdrop') }}</div>
+        <div class="font-semibold text-sm truncate">{{ gift.backdrop_name }}</div>
+        {% if gift.backdrop_rarity %}<div class="text-xs text-accent">{{ gift.backdrop_rarity }}%</div>{% endif %}
+      </div>
+      {% endif %}
+      {% if gift.symbol_name %}
+      <div class="rounded-xl bg-panel border border-white/10 p-3">
+        <div class="text-[10px] uppercase text-gray-500 mb-1">{{ t('gifts.symbol') }}</div>
+        <div class="font-semibold text-sm truncate">{{ gift.symbol_name }}</div>
+        {% if gift.symbol_rarity %}<div class="text-xs text-accent">{{ gift.symbol_rarity }}%</div>{% endif %}
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    {% if gift.issued_number and gift.issued_total %}
+    <div class="rounded-xl bg-panel border border-white/10 p-3 mb-5 text-sm">
+      <span class="text-gray-400">{{ t('gifts.issued') }}:</span>
+      <span class="font-semibold">{{ gift.issued_number }}</span>
+      <span class="text-gray-500">of {{ gift.issued_total }}</span>
+    </div>
+    {% endif %}
+
     {% if gift.description %}
-    <div class="mb-6 text-gray-300 leading-relaxed">{{ gift.description }}</div>
+    <div class="mb-5 text-gray-300 leading-relaxed text-sm">{{ gift.description }}</div>
     {% endif %}
 
     <!-- Buy form -->
     {% if gift.is_available and gift.quantity > 0 %}
-    <form method="POST" action="{{ url_for('main.buy', gift_id=gift.id) }}" class="space-y-3">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-      <input type="text" name="contact" placeholder="Telegram @username барои тамос (ихтиёрӣ)"
-             class="w-full px-4 py-3 rounded-xl bg-panel border border-white/10 focus:border-accent focus:outline-none" />
       {% if current_user.is_authenticated %}
+      <form method="POST" action="{{ url_for('main.buy', gift_id=gift.id) }}" class="space-y-3">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+        <div class="rounded-xl bg-panel border border-white/10 p-3">
+          <label class="block text-xs uppercase text-gray-500 mb-2">{{ t('buy.balance_in') }}</label>
+          <div class="grid grid-cols-3 gap-2">
+            {% for cur, label in [('TJS', 'TJS'), ('TON', 'TON'), ('USD', 'USD')] %}
+              {% set price = gift.get_price_in(cur, ton_rate_dict) %}
+              {% set balance = current_user.get_balance(cur) %}
+              {% set enough = balance >= price %}
+              <label class="cursor-pointer">
+                <input type="radio" name="currency" value="{{ cur }}" class="peer sr-only"
+                       {% if loop.first %}checked{% endif %} {% if not enough %}disabled{% endif %} />
+                <div class="rounded-lg border-2 border-white/10 peer-checked:border-accent peer-checked:bg-accent/10 p-2 text-center transition {% if not enough %}opacity-50{% endif %}">
+                  <div class="text-xs text-gray-400">{{ label }}</div>
+                  <div class="font-bold text-sm {% if not enough %}text-red-400{% endif %}">
+                    {{ "%.2f"|format(price) }}
+                  </div>
+                  <div class="text-[10px] text-gray-500">/ {{ "%.2f"|format(balance) }}</div>
+                </div>
+              </label>
+            {% endfor %}
+          </div>
+        </div>
+
         <button type="submit" class="w-full py-3 rounded-xl bg-gradient-to-r from-accent to-accent2 hover:opacity-90 text-white font-semibold shadow-lg shadow-accent/30 transition">
-          Харид кардан
+          {{ t('gifts.buy_with_balance') }}
         </button>
+      </form>
       {% else %}
         <a href="{{ url_for('auth.login') }}" class="block text-center w-full py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 font-semibold transition">
-          Барои харид login кунед
+          {{ t('nav.login') }} → {{ t('gifts.buy') }}
         </a>
       {% endif %}
-    </form>
     {% endif %}
 
     {% if gift.fragment_url %}
       <a href="{{ gift.fragment_url }}" target="_blank" rel="noopener"
          class="mt-3 inline-flex items-center gap-1 text-xs text-gray-500 hover:text-accent">
-        Сарчашма дар fragment.com →
+        Fragment.com →
       </a>
     {% endif %}
   </div>
 </div>
 
 {% if similar %}
-<section class="mt-16">
-  <h2 class="text-xl font-bold mb-4">Ҳамчунин нигаред</h2>
+<section class="mt-12">
+  <h2 class="text-xl font-bold mb-4">{{ t('gifts.featured') }}</h2>
   <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
     {% for gift in similar %}
       {% include 'partials/gift_card.html' %}

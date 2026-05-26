@@ -4,9 +4,10 @@
   <aside class="md:sticky md:top-20 self-start space-y-1 rounded-2xl bg-panel border border-white/10 p-3">
     <div class="px-3 py-2 text-xs uppercase text-gray-500 tracking-wider">Admin</div>
     <a href="{{ url_for('admin.dashboard') }}" class="block px-3 py-2 rounded-lg hover:bg-white/5 text-sm {% if request.endpoint == 'admin.dashboard' %}bg-accent/10 text-accent{% endif %}">📊 Dashboard</a>
-    <a href="{{ url_for('admin.gifts') }}" class="block px-3 py-2 rounded-lg hover:bg-white/5 text-sm {% if 'gift' in request.endpoint %}bg-accent/10 text-accent{% endif %}">🎁 Gifts</a>
+    <a href="{{ url_for('admin.gifts') }}" class="block px-3 py-2 rounded-lg hover:bg-white/5 text-sm {% if 'gift' in (request.endpoint or '') %}bg-accent/10 text-accent{% endif %}">🎁 Gifts</a>
     <a href="{{ url_for('admin.orders') }}" class="block px-3 py-2 rounded-lg hover:bg-white/5 text-sm {% if request.endpoint == 'admin.orders' %}bg-accent/10 text-accent{% endif %}">📦 Orders</a>
-    <a href="{{ url_for('admin.users') }}" class="block px-3 py-2 rounded-lg hover:bg-white/5 text-sm {% if request.endpoint == 'admin.users' %}bg-accent/10 text-accent{% endif %}">👥 Users</a>
+    <a href="{{ url_for('admin.transfers') }}" class="block px-3 py-2 rounded-lg hover:bg-white/5 text-sm {% if request.endpoint == 'admin.transfers' %}bg-accent/10 text-accent{% endif %}">📨 Transfers</a>
+    <a href="{{ url_for('admin.users') }}" class="block px-3 py-2 rounded-lg hover:bg-white/5 text-sm {% if 'user' in (request.endpoint or '') %}bg-accent/10 text-accent{% endif %}">👥 Users</a>
     <a href="{{ url_for('admin.settings') }}" class="block px-3 py-2 rounded-lg hover:bg-white/5 text-sm {% if request.endpoint == 'admin.settings' %}bg-accent/10 text-accent{% endif %}">⚙️ Settings</a>
     <div class="border-t border-white/5 my-2"></div>
     <a href="{{ url_for('main.index') }}" class="block px-3 py-2 rounded-lg hover:bg-white/5 text-sm text-gray-400">← Ба сайт</a>

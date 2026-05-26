@@ -1,26 +1,25 @@
 {% extends 'base.html' %}
-{% block title %}Gifts — Fragment TJ{% endblock %}
+{% block title %}{{ t('gifts.title') }} — {{ site_name }}{% endblock %}
 
 {% block content %}
-<div class="mb-8">
-  <h1 class="text-3xl font-bold mb-2">Тамоми Gifts</h1>
-  <p class="text-gray-400">Дар коллексия {{ pagination.total }} gift мавҷуд аст.</p>
+<div class="mb-6">
+  <h1 class="text-3xl font-bold mb-1">{{ t('gifts.title') }}</h1>
+  <p class="text-gray-400 text-sm">{{ pagination.total }} gift</p>
 </div>
 
-<!-- Filters -->
 <form method="GET" class="mb-6 grid grid-cols-1 md:grid-cols-4 gap-3">
-  <input type="text" name="q" value="{{ q }}" placeholder="Ҷустуҷӯ..."
+  <input type="text" name="q" value="{{ q }}" placeholder="{{ t('gifts.search_placeholder') }}"
          class="md:col-span-2 px-4 py-2.5 rounded-xl bg-panel border border-white/10 focus:border-accent focus:outline-none text-sm" />
   <select name="collection" class="px-4 py-2.5 rounded-xl bg-panel border border-white/10 text-sm">
-    <option value="">Ҳамаи коллексияҳо</option>
+    <option value="">{{ t('gifts.all_collections') }}</option>
     {% for c in collections %}
       <option value="{{ c }}" {% if c == collection %}selected{% endif %}>{{ c }}</option>
     {% endfor %}
   </select>
   <select name="sort" class="px-4 py-2.5 rounded-xl bg-panel border border-white/10 text-sm">
-    <option value="newest" {% if sort == 'newest' %}selected{% endif %}>Аз нав</option>
-    <option value="price_asc" {% if sort == 'price_asc' %}selected{% endif %}>Нарх ↑</option>
-    <option value="price_desc" {% if sort == 'price_desc' %}selected{% endif %}>Нарх ↓</option>
+    <option value="newest" {% if sort == 'newest' %}selected{% endif %}>{{ t('gifts.sort.newest') }}</option>
+    <option value="price_asc" {% if sort == 'price_asc' %}selected{% endif %}>{{ t('gifts.sort.price_asc') }}</option>
+    <option value="price_desc" {% if sort == 'price_desc' %}selected{% endif %}>{{ t('gifts.sort.price_desc') }}</option>
   </select>
 </form>
 
@@ -31,7 +30,6 @@
   {% endfor %}
 </div>
 
-<!-- Pagination -->
 {% if pagination.pages > 1 %}
 <div class="flex justify-center gap-2 mt-10">
   {% if pagination.has_prev %}
@@ -50,7 +48,7 @@
 {% else %}
 <div class="text-center py-20">
   <div class="text-6xl mb-4 opacity-30">🔍</div>
-  <p class="text-gray-400">Натиҷа ёфт нашуд.</p>
+  <p class="text-gray-400">{{ t('gifts.no_results') }}</p>
 </div>
 {% endif %}
 {% endblock %}

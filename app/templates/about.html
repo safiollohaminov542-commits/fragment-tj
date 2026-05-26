@@ -1,18 +1,19 @@
 {% extends 'base.html' %}
-{% block title %}Дар бораи мо — Fragment TJ{% endblock %}
+{% block title %}{{ t('nav.about') }} — {{ site_name }}{% endblock %}
 
 {% block content %}
 <div class="max-w-3xl mx-auto py-8">
-  <h1 class="text-4xl font-bold mb-6">Дар бораи Fragment TJ</h1>
+  <h1 class="text-4xl font-bold mb-6">{{ t('nav.about') }}</h1>
   <div class="prose prose-invert text-gray-300 space-y-4">
-    <p>Fragment TJ — маркетплейси Telegram Gifts барои Тоҷикистон аст. Мо ба шумо имконият медиҳем, ки gift-ҳои нодирро бо TON ва сомонӣ харидорӣ кунед.</p>
-    <p>Тамоми gift-ҳо аз <a href="https://fragment.com" target="_blank" class="text-accent hover:underline">fragment.com</a> сарчашма мегиранд ва нархҳо аз курси феълии TON автоматӣ ҳисоб карда мешаванд.</p>
+    <p>Fragment TJ — маркетплейси Telegram Gifts барои Тоҷикистон.</p>
+    <p>Тамоми gift-ҳо аз <a href="https://fragment.com" target="_blank" class="text-accent hover:underline">fragment.com</a> сарчашма мегиранд.</p>
     <h2 class="text-2xl font-bold text-white mt-8">Чӣ тавр кор мекунад?</h2>
     <ol class="list-decimal list-inside space-y-2">
-      <li>Login кунед бо Telegram ё Google</li>
-      <li>Gift-и дилхоҳро интихоб кунед</li>
-      <li>Заказ диҳед — мо бо шумо тамос мегирем</li>
-      <li>Пардохт ва расонидани gift</li>
+      <li>Бо email сабт шавед</li>
+      <li>Balance-и худро бо TJS, TON, ё USD пур кунед (тавассути admin)</li>
+      <li>Gift-и дилхоҳро интихоб ва харид кунед</li>
+      <li>Барои гирифтан, ба Telegram username-и худ заявка диҳед</li>
+      <li>Admin gift-ро ба шумо мефиристад</li>
     </ol>
   </div>
 </div>

@@ -1,32 +1,36 @@
 <a href="{{ url_for('main.gift_detail', slug=gift.slug) }}"
-   class="group relative block rounded-2xl bg-panel border border-white/5 hover:border-accent/40 overflow-hidden transition-all hover:-translate-y-1 hover:shadow-2xl hover:shadow-accent/10">
+   class="gift-card group relative block rounded-2xl bg-panel border border-white/5 overflow-hidden">
   {% if gift.is_featured %}
-    <span class="absolute top-3 right-3 z-10 px-2 py-0.5 rounded-md bg-accent/20 border border-accent/30 text-accent text-[10px] font-semibold uppercase tracking-wider">Featured</span>
+    <span class="absolute top-3 right-3 z-10 px-2 py-0.5 rounded-md bg-accent/90 text-white text-[10px] font-bold uppercase tracking-wider">★</span>
   {% endif %}
 
-  <div class="aspect-square bg-gradient-to-br from-white/5 to-white/0 relative overflow-hidden">
-    {% if gift.image_url %}
+  <div class="aspect-square relative overflow-hidden"
+       {% if gift.background_color %}style="background: {{ gift.background_color }};"{% endif %}>
+    {% if gift.animation_url %}
+      <lottie-player src="{{ gift.animation_url }}" background="transparent" speed="1"
+                     style="width:100%;height:100%;" loop autoplay></lottie-player>
+    {% elif gift.image_url %}
       <img src="{{ gift.image_url }}" alt="{{ gift.title }}"
-           class="w-full h-full object-cover group-hover:scale-110 transition duration-500"
+           class="w-full h-full object-cover group-hover:scale-105 transition duration-500"
            loading="lazy" />
     {% else %}
-      <div class="w-full h-full flex items-center justify-center text-6xl opacity-20">🎁</div>
+      <div class="w-full h-full flex items-center justify-center text-6xl opacity-30">🎁</div>
     {% endif %}
-    <div class="absolute inset-0 bg-gradient-to-t from-bg/80 via-transparent to-transparent"></div>
+    <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none"></div>
   </div>
 
-  <div class="p-4">
+  <div class="p-3.5">
     <h3 class="font-semibold text-sm truncate group-hover:text-accent transition">{{ gift.title }}</h3>
     {% if gift.collection %}
       <p class="text-xs text-gray-500 mt-0.5 truncate">{{ gift.collection }}</p>
     {% endif %}
-    <div class="flex items-center justify-between mt-3">
+    <div class="flex items-center justify-between mt-2.5">
       <div class="flex items-center gap-1 text-accent font-bold">
-        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0L0 6.6L12 24L24 6.6L12 0Z"/></svg>
-        <span class="text-sm">{{ gift.ton_price }}</span>
+        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0L0 6.6L12 24L24 6.6L12 0Z"/></svg>
+        <span class="text-sm">{{ gift.final_ton_price }}</span>
       </div>
       <div class="text-xs text-gray-400">
-        ≈ <span class="font-semibold text-gray-200">{{ "%.0f"|format(gift.get_tjs_price(ton_rate)) }}</span> TJS
+        ≈ <span class="font-semibold text-gray-200">{{ "%.0f"|format(gift.get_price_in('TJS', ton_rate_dict)) }}</span> TJS
       </div>
     </div>
   </div>
